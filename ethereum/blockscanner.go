@@ -1014,12 +1014,19 @@ func (this *ETHBLockScanner) MakeTokenTxFromExtractData(tx *BlockTransaction, to
 }
 
 //ExtractTransactionData 扫描一笔交易
-func (this *ETHBLockScanner) ExtractTransactionData(txid string, scanAddressFunc openwallet.BlockScanAddressFunc) (map[string][]*openwallet.TxExtractData, error) {
+func (this *ETHBLockScanner) ExtractTransactionData(txid string, scanTargetFunc openwallet.BlockScanTargetFunc) (map[string][]*openwallet.TxExtractData, error) {
 	//result := bs.ExtractTransaction(0, "", txid, scanAddressFunc)
 	tx, err := this.wm.WalletClient.EthGetTransactionByHash(txid)
 	if err != nil {
 		this.wm.Log.Errorf("get transaction by has failed, err=%v", err)
 		return nil, fmt.Errorf("get transaction by has failed, err=%v", err)
+	}
+	scanAddressFunc := func(address string) (string, bool){
+		target := openwallet.ScanTarget{
+			Address: address,
+			BalanceModelType: openwallet.BalanceModelTypeAddress,
+		}
+		return scanTargetFunc(target)
 	}
 	tx.filterFunc = scanAddressFunc
 	result, err := this.TransactionScanning(tx)

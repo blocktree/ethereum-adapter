@@ -52,7 +52,6 @@ func (sub *subscriberSingle) BlockExtractDataNotify(sourceKey string, data *open
 	return nil
 }
 
-
 func TestSubscribeAddress_ETH(t *testing.T) {
 
 	var (
@@ -110,4 +109,75 @@ func TestSubscribeAddress_ETH(t *testing.T) {
 	scanner.Run()
 
 	<-endRunning
+}
+
+func TestBlockScanner_ExtractTransactionData(t *testing.T) {
+
+	var (
+		symbol = "ETH"
+		txid   = "0xdeb8e107d0305b3a9134f489befb7dc7ec367384ef13ca041e139a760fd97a3c"
+		addrs  = map[string]string{
+			"0x7b7cec354d2d9f91e736e6042116f0fe2e3e332a": "sender",
+		}
+	)
+
+	//GetSourceKeyByAddress 获取地址对应的数据源标识
+	scanTargetFunc := func(target openwallet.ScanTarget) (string, bool) {
+		key, ok := addrs[target.Address]
+		if !ok {
+			return "", false
+		}
+		return key, true
+	}
+
+	assetsMgr, err := openw.GetAssetsAdapter(symbol)
+	if err != nil {
+		log.Error(symbol, "is not support")
+		return
+	}
+
+	//读取配置
+	absFile := filepath.Join(configFilePath, symbol+".ini")
+
+	c, err := config.NewConfig("ini", absFile)
+	if err != nil {
+		return
+	}
+	assetsMgr.LoadAssetsConfig(c)
+
+	assetsLogger := assetsMgr.GetAssetsLogger()
+	if assetsLogger != nil {
+		assetsLogger.SetLogFuncCall(true)
+	}
+
+	//log.Debug("already got scanner:", assetsMgr)
+	scanner := assetsMgr.GetBlockScanner()
+	//scanner.SetRescanBlockHeight(6518561)
+
+	if scanner == nil {
+		log.Error(symbol, "is not support block scan")
+		return
+	}
+	result, err := scanner.ExtractTransactionData(txid, scanTargetFunc)
+	if err != nil {
+		t.Errorf("ExtractTransactionData unexpected error %v", err)
+		return
+	}
+
+	for sourceKey, keyData := range result {
+		log.Notice("account:", sourceKey)
+		for _, data := range keyData {
+
+			for i, input := range data.TxInputs {
+				log.Std.Notice("data.TxInputs[%d]: %+v", i, input)
+			}
+
+			for i, output := range data.TxOutputs {
+				log.Std.Notice("data.TxOutputs[%d]: %+v", i, output)
+			}
+
+			log.Std.Notice("data.Transaction: %+v", data.Transaction)
+		}
+	}
+
 }
