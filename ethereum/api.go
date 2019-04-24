@@ -185,7 +185,7 @@ func (this *TxpoolContent) GetPendingTxCountForAddr(addr string) int {
 func (this *Client) ethGetTransactionCount(addr string) (uint64, error) {
 	params := []interface{}{
 		appendOxToAddress(addr),
-		"latest",
+		"pending",
 	}
 
 	result, err := this.Call("eth_getTransactionCount", 1, params)

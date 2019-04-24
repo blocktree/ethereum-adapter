@@ -1107,29 +1107,30 @@ func (this *WalletManager) GetAddressesByWallet(dbPath string, wallet *Wallet) (
 
 func (this *WalletManager) GetNonceForAddress2(address string) (uint64, error) {
 	address = appendOxToAddress(address)
-	txpool, err := this.WalletClient.ethGetTxPoolContent()
-	if err != nil {
-		this.Log.Errorf("ethGetTxPoolContent failed, err = %v", err)
-		return 0, err
-	}
-
-	_, max, count, err := txpool.GetSequentTxNonce(address)
-	if err != nil {
-		log.Error("get txpool sequent tx nonce failed, err=%v", err)
-		return 0, err
-	}
-	log.Debugf("sequent max nonce:%v", max)
-	log.Debugf("sequent nonce count:%v", count)
+	//txpool, err := this.WalletClient.ethGetTxPoolContent()
+	//if err != nil {
+	//	this.Log.Errorf("ethGetTxPoolContent failed, err = %v", err)
+	//	return 0, err
+	//}
+	//
+	//_, max, count, err := txpool.GetSequentTxNonce(address)
+	//if err != nil {
+	//	log.Error("get txpool sequent tx nonce failed, err=%v", err)
+	//	return 0, err
+	//}
+	//log.Debugf("sequent max nonce:%v", max)
+	//log.Debugf("sequent nonce count:%v", count)
 	txCount, err := this.WalletClient.ethGetTransactionCount(address)
 	if err != nil {
 		log.Error("ethGetTransactionCount failed, err=", err)
 		return 0, err
 	}
 	log.Debugf("txCount:%v", txCount)
-	if count == 0 || max < txCount {
-		return txCount, nil
-	}
-	return max + 1, nil
+	return txCount, nil
+	//if count == 0 || max < txCount {
+	//	return txCount, nil
+	//}
+	//return max + 1, nil
 }
 
 func (this *WalletManager) GetNonceForAddress(address string) (uint64, error) {

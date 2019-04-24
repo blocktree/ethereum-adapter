@@ -22,7 +22,7 @@ import (
 
 func testNewWalletManager() *WalletManager {
 	wm := NewWalletManager()
-	wm.Config.ServerAPI = "http://47.106.102.2:10001"
+	wm.Config.ServerAPI = ""
 	//wm.Config.ServerAPI = "https://mainnet.nebulas.io"
 	wm.WalletClient = &Client{BaseURL: wm.Config.ServerAPI, Debug: true}
 	return wm

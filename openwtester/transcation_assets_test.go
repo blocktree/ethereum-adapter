@@ -119,13 +119,13 @@ func testSubmitTransactionStep(tm *openw.WalletManager, rawTx *openwallet.RawTra
 
 func TestTransfer_ETH(t *testing.T) {
 	tm := testInitWalletManager()
-	walletID := "WHQF3H2Hqa2Pksp8vWmBDZpS7piEGVivRp"
-	accountID := "HgRBsaiKgoVDagwezos496vqKQCh41pY44JbhW65YA8t"
-	to := "0xd35f9Ea14D063af9B3567064FAB567275b09f03D"
+	walletID := "WBGYxZ6yEX582Mx8mGvygXevdLVc7NQnLM"
+	accountID := "AfF8aoW2M2bQwVc2aJ38cCGEcnXF3WCsma1Day7zGA4C"
+	to := "0xd35f9ea14d063af9b3567064fab567275b09f03d"
 
 	testGetAssetsAccountBalance(tm, walletID, accountID)
 
-	rawTx, err := testCreateTransactionStep(tm, walletID, accountID, to, "0.001", "", nil)
+	rawTx, err := testCreateTransactionStep(tm, walletID, accountID, to, "0.0002", "", nil)
 	if err != nil {
 		return
 	}
@@ -191,9 +191,9 @@ func TestTransfer_ERC20(t *testing.T) {
 
 func TestSummary_ETH(t *testing.T) {
 	tm := testInitWalletManager()
-	walletID := "WHQF3H2Hqa2Pksp8vWmBDZpS7piEGVivRp"
-	accountID := "HgRBsaiKgoVDagwezos496vqKQCh41pY44JbhW65YA8t"
-	summaryAddress := "0xd35f9Ea14D063af9B3567064FAB567275b09f03D"
+	walletID := "WBGYxZ6yEX582Mx8mGvygXevdLVc7NQnLM"
+	accountID := "AfF8aoW2M2bQwVc2aJ38cCGEcnXF3WCsma1Day7zGA4C"
+	summaryAddress := "0xd35f9ea14d063af9b3567064fab567275b09f03d"
 
 	testGetAssetsAccountBalance(tm, walletID, accountID)
 

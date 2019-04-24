@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/blocktree/ethereum-adapter/ethereum_txsigner"
 	"github.com/shopspring/decimal"
 
 	"github.com/tidwall/gjson"
@@ -517,11 +518,11 @@ func (this *EthTransactionDecoder) SignRawTransaction(wrapper openwallet.WalletD
 		this.wm.Log.Error("secp256k1.Sign failed, err=", err)
 		return err
 	}*/
-	sig, ret := owcrypt.ETHsignature(keyBytes, message)
-	if ret != owcrypt.SUCCESS {
-		errdesc := fmt.Sprintln("signature error, ret:", "0x"+strconv.FormatUint(uint64(ret), 16))
-		this.wm.Log.Error(errdesc)
-		return errors.New(errdesc)
+	sig, err := ethereum_txsigner.Default.SignTransactionHash(message, keyBytes, owcrypt.ECC_CURVE_SECP256K1)
+	if err != nil {
+		//errdesc := fmt.Sprintln("signature error, ret:", "0x"+strconv.FormatUint(uint64(ret), 16))
+		//this.wm.Log.Error(errdesc)
+		return err
 	}
 
 	signnode.Signature = hex.EncodeToString(sig)
