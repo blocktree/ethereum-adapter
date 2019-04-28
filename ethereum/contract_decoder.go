@@ -10,6 +10,7 @@ import (
 )
 
 type EthContractDecoder struct {
+	*openwallet.SmartContractDecoderBase
 	wm *WalletManager
 }
 
@@ -105,7 +106,7 @@ func (this *EthContractDecoder) GetTokenBalanceByAddress(contract openwallet.Sma
 			if balance != nil {
 				tokenBalanceList = append(tokenBalanceList, balance)
 			}
-			log.Debugf("got one balance.")
+			//log.Debugf("got one balance.")
 		}
 		done <- 1
 	}()
