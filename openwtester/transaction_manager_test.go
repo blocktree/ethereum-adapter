@@ -119,10 +119,10 @@ func TestWalletManager_GetAssetsAccountBalance(t *testing.T) {
 func TestWalletManager_GetAssetsAccountTokenBalance(t *testing.T) {
 	tm := testInitWalletManager()
 	walletID := "WBGYxZ6yEX582Mx8mGvygXevdLVc7NQnLM"
-	accountID := "AfF8aoW2M2bQwVc2aJ38cCGEcnXF3WCsma1Day7zGA4C"
+	accountID := "3csEgf2TcxwNeoFSTsePXFVmzcyNhHAS49jsTv99n1Nv"
 
 	contract := openwallet.SmartContract{
-		Address:  "0x1cC3150ABc543b62A20694DC16c9E614855A2C40",
+		Address:  "0x4092678e4e78230f46a1534c0fbc8fa39780892b",
 		Symbol:   "ETH",
 		Name:     "OCoin",
 		Token:    "OCN",

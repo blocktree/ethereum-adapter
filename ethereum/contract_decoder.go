@@ -2,6 +2,7 @@ package ethereum
 
 import (
 	"errors"
+	"github.com/blocktree/openwallet/common"
 	"math/big"
 	"strings"
 
@@ -137,19 +138,22 @@ func (this *EthContractDecoder) GetTokenBalanceByAddress(contract openwallet.Sma
 		//		log.Debugf("got balanceAll of [%v] :%v", address, balanceAll)
 		balanceUnconfirmed := big.NewInt(0)
 		balanceUnconfirmed.Sub(balanceAll, balanceConfirmed)
-		bstr, err := ConvertAmountToFloatDecimal(balanceAll.String(), int(contract.Decimals))
+		bstr := common.BigIntToDecimals(balanceAll, int32(contract.Decimals))
+		//bstr, err := ConvertAmountToFloatDecimal(balanceAll.String(), int(contract.Decimals))
 		if err != nil {
 			log.Errorf("convert balanceAll to float string failed, err=%v", err)
 			return
 		}
 
-		cbstr, err := ConvertAmountToFloatDecimal(balanceConfirmed.String(), int(contract.Decimals))
+		cbstr := common.BigIntToDecimals(balanceConfirmed, int32(contract.Decimals))
+		//cbstr, err := ConvertAmountToFloatDecimal(balanceConfirmed.String(), int(contract.Decimals))
 		if err != nil {
 			log.Errorf("convert balanceConfirmed to float string failed, err=%v", err)
 			return
 		}
 
-		ucbstr, err := ConvertAmountToFloatDecimal(balanceUnconfirmed.String(), int(contract.Decimals))
+		ucbstr := common.BigIntToDecimals(balanceUnconfirmed, int32(contract.Decimals))
+		//ucbstr, err := ConvertAmountToFloatDecimal(balanceUnconfirmed.String(), int(contract.Decimals))
 		if err != nil {
 			log.Errorf("convert balanceUnconfirmed to float string failed, err=%v", err)
 			return
