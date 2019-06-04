@@ -420,7 +420,7 @@ func (this *EthTransactionDecoder) CreateErc20TokenRawTransaction(wrapper openwa
 			fee.CalcFee()
 		}
 
-		coinBalance, err := this.wm.WalletClient.GetAddrBalance2(appendOxToAddress(addrBalance.Balance.Address), "latest")
+		coinBalance, err := this.wm.WalletClient.GetAddrBalance2(appendOxToAddress(addrBalance.Balance.Address), "pending")
 		if err != nil {
 			continue
 		}
@@ -1109,7 +1109,7 @@ func (this *EthTransactionDecoder) CreateErc20TokenSummaryRawTransaction(wrapper
 		sumAmount, _ := ConvertAmountToFloatDecimal(sumAmount_BI.String(), tokenDecimals)
 		fees, _ := ConverWeiStringToEthDecimal(fee.Fee.String())
 
-		coinBalance, createErr := this.wm.WalletClient.GetAddrBalance2(appendOxToAddress(addrBalance.Balance.Address), "latest")
+		coinBalance, createErr := this.wm.WalletClient.GetAddrBalance2(appendOxToAddress(addrBalance.Balance.Address), "pending")
 		if err != nil {
 			continue
 		}
