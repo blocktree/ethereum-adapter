@@ -997,7 +997,10 @@ func (this *ETHBLockScanner) MakeTokenTxFromExtractData(tx *BlockTransaction, to
 		BlockHash:   tx.BlockHash,
 		BlockHeight: tx.BlockHeight,
 		Fees:        feeprice, //tx.GasPrice, //totalSpent.Sub(totalReceived).StringFixed(8),
-		Coin:        coin,
+		Coin: openwallet.Coin{
+			Symbol:     this.wm.Symbol(),
+			IsContract: false,
+		},
 		SubmitTime:  nowUnix,
 		ConfirmTime: nowUnix,
 		Status:      common.NewString(tx.Status).String(),
@@ -1021,9 +1024,9 @@ func (this *ETHBLockScanner) ExtractTransactionData(txid string, scanTargetFunc 
 		this.wm.Log.Errorf("get transaction by has failed, err=%v", err)
 		return nil, fmt.Errorf("get transaction by has failed, err=%v", err)
 	}
-	scanAddressFunc := func(address string) (string, bool){
+	scanAddressFunc := func(address string) (string, bool) {
 		target := openwallet.ScanTarget{
-			Address: address,
+			Address:          address,
 			BalanceModelType: openwallet.BalanceModelTypeAddress,
 		}
 		return scanTargetFunc(target)
@@ -1176,7 +1179,6 @@ func (this *ETHBLockScanner) GetScannedBlockHeader() (*openwallet.BlockHeader, e
 
 	return &openwallet.BlockHeader{Height: blockHeight, Hash: hash}, nil
 }
-
 
 //GetCurrentBlockHeader 获取当前区块高度
 func (this *ETHBLockScanner) GetCurrentBlockHeader() (*openwallet.BlockHeader, error) {
