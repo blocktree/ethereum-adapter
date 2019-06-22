@@ -389,6 +389,9 @@ func (this *EthTransactionDecoder) CreateErc20TokenRawTransaction(wrapper openwa
 		}
 	})
 
+	tokenBalanceNotEnough := false
+	balanceNotEnough := false
+
 	for _, addrBalance := range addrBalanceArray {
 		callData = ""
 
@@ -399,6 +402,7 @@ func (this *EthTransactionDecoder) CreateErc20TokenRawTransaction(wrapper openwa
 
 		if addrBalance_BI.Cmp(amount) < 0 {
 			errStr = fmt.Sprintf("the balance: %s is not enough", amountStr)
+			tokenBalanceNotEnough = true
 			continue
 		}
 
@@ -428,6 +432,7 @@ func (this *EthTransactionDecoder) CreateErc20TokenRawTransaction(wrapper openwa
 		if coinBalance.Cmp(fee.Fee) < 0 {
 			coinBalance, _ := ConverWeiStringToEthDecimal(coinBalance.String())
 			errStr = fmt.Sprintf("the [%s] balance: %s is not enough to call smart contract", rawTx.Coin.Symbol, coinBalance)
+			balanceNotEnough = true
 			continue
 		}
 
@@ -439,7 +444,12 @@ func (this *EthTransactionDecoder) CreateErc20TokenRawTransaction(wrapper openwa
 	}
 
 	if findAddrBalance == nil {
-		return openwallet.Errorf(openwallet.ErrInsufficientBalanceOfAccount, errStr)
+		if tokenBalanceNotEnough {
+			return openwallet.Errorf(openwallet.ErrInsufficientTokenBalanceOfAddress, errStr)
+		}
+		if balanceNotEnough {
+			return openwallet.Errorf(openwallet.ErrInsufficientFees, errStr)
+		}
 	}
 
 	//最后创建交易单
@@ -1299,7 +1309,7 @@ func (this *EthTransactionDecoder) createRawTransaction(wrapper openwallet.Walle
 
 		if addrBalance.Balance.Cmp(fee.Fee) < 0 {
 			coinBalance, _ := ConverWeiStringToEthDecimal(addrBalance.Balance.String())
-			return openwallet.Errorf(openwallet.ErrInsufficientBalanceOfAddress, "the [%s] balance: %s is not enough to call smart contract", rawTx.Coin.Symbol, coinBalance)
+			return openwallet.Errorf(openwallet.ErrInsufficientFees, "the [%s] balance: %s is not enough to call smart contract", rawTx.Coin.Symbol, coinBalance)
 			//return openwallet.Errorf("the [%s] balance: %s is not enough to call smart contract", rawTx.Coin.Symbol, coinBalance)
 		}
 
@@ -1312,7 +1322,7 @@ func (this *EthTransactionDecoder) createRawTransaction(wrapper openwallet.Walle
 		totalAmount := new(big.Int)
 		totalAmount.Add(amount, fee.Fee)
 		if addrBalance.Balance.Cmp(totalAmount) < 0 {
-			return openwallet.Errorf(openwallet.ErrInsufficientBalanceOfAddress, "the [%s] balance: %s is not enough", rawTx.Coin.Symbol, amountStr)
+			return openwallet.Errorf(openwallet.ErrInsufficientFees, "the [%s] balance: %s is not enough", rawTx.Coin.Symbol, amountStr)
 			//return openwallet.Errorf("the [%s] balance: %s is not enough", rawTx.Coin.Symbol, amountStr)
 		}
 

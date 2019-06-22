@@ -121,12 +121,13 @@ func testSubmitTransactionStep(tm *openw.WalletManager, rawTx *openwallet.RawTra
 func TestTransfer_ETH(t *testing.T) {
 	tm := testInitWalletManager()
 	walletID := "WBGYxZ6yEX582Mx8mGvygXevdLVc7NQnLM"
-	accountID := "AfF8aoW2M2bQwVc2aJ38cCGEcnXF3WCsma1Day7zGA4C"
+	accountID := "3csEgf2TcxwNeoFSTsePXFVmzcyNhHAS49jsTv99n1Nv"
+	//accountID := "AfF8aoW2M2bQwVc2aJ38cCGEcnXF3WCsma1Day7zGA4C"
 	to := "0xd35f9ea14d063af9b3567064fab567275b09f03d"
 
 	testGetAssetsAccountBalance(tm, walletID, accountID)
 
-	rawTx, err := testCreateTransactionStep(tm, walletID, accountID, to, "0.0002", "", nil)
+	rawTx, err := testCreateTransactionStep(tm, walletID, accountID, to, "0.0087", "", nil)
 	if err != nil {
 		return
 	}
@@ -153,7 +154,8 @@ func TestTransfer_ETH(t *testing.T) {
 func TestTransfer_ERC20(t *testing.T) {
 	tm := testInitWalletManager()
 	walletID := "WBGYxZ6yEX582Mx8mGvygXevdLVc7NQnLM"
-	accountID := "AfF8aoW2M2bQwVc2aJ38cCGEcnXF3WCsma1Day7zGA4C"
+	accountID := "3csEgf2TcxwNeoFSTsePXFVmzcyNhHAS49jsTv99n1Nv"
+	//accountID := "AfF8aoW2M2bQwVc2aJ38cCGEcnXF3WCsma1Day7zGA4C"
 	to := "0xd35f9ea14d063af9b3567064fab567275b09f03d"
 
 	contract := openwallet.SmartContract{
@@ -163,6 +165,14 @@ func TestTransfer_ERC20(t *testing.T) {
 		Token:    "OCN",
 		Decimals: 18,
 	}
+
+	//contract := openwallet.SmartContract{
+	//	Address:  "0xf217744b7a8d35b77fabbbb74acccdc15f56b3a9",
+	//	Symbol:   "ETH",
+	//	Name:     "Initial Vote Offering Token",
+	//	Token:    "IVT",
+	//	Decimals: 2,
+	//}
 
 	testGetAssetsAccountBalance(tm, walletID, accountID)
 
