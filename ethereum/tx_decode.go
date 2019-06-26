@@ -336,7 +336,8 @@ func (this *EthTransactionDecoder) CreateErc20TokenRawTransaction(wrapper openwa
 		accountID       = rawTx.Account.AccountID
 		findAddrBalance *AddrBalance
 		feeInfo         *txFeeInfo
-		errStr          string
+		errBalance      string
+		errTokenBalance string
 		callData        string
 	)
 
@@ -401,7 +402,7 @@ func (this *EthTransactionDecoder) CreateErc20TokenRawTransaction(wrapper openwa
 		amount, _ := ConvertFloatStringToBigInt(amountStr, tokenDecimals)
 
 		if addrBalance_BI.Cmp(amount) < 0 {
-			errStr = fmt.Sprintf("the balance: %s is not enough", amountStr)
+			errTokenBalance = fmt.Sprintf("the token balance of all addresses is not enough")
 			tokenBalanceNotEnough = true
 			continue
 		}
@@ -431,7 +432,7 @@ func (this *EthTransactionDecoder) CreateErc20TokenRawTransaction(wrapper openwa
 
 		if coinBalance.Cmp(fee.Fee) < 0 {
 			coinBalance, _ := ConverWeiStringToEthDecimal(coinBalance.String())
-			errStr = fmt.Sprintf("the [%s] balance: %s is not enough to call smart contract", rawTx.Coin.Symbol, coinBalance)
+			errBalance = fmt.Sprintf("the [%s] balance: %s is not enough to call smart contract", rawTx.Coin.Symbol, coinBalance)
 			balanceNotEnough = true
 			continue
 		}
@@ -445,10 +446,10 @@ func (this *EthTransactionDecoder) CreateErc20TokenRawTransaction(wrapper openwa
 
 	if findAddrBalance == nil {
 		if tokenBalanceNotEnough {
-			return openwallet.Errorf(openwallet.ErrInsufficientTokenBalanceOfAddress, errStr)
+			return openwallet.Errorf(openwallet.ErrInsufficientTokenBalanceOfAddress, errTokenBalance)
 		}
 		if balanceNotEnough {
-			return openwallet.Errorf(openwallet.ErrInsufficientFees, errStr)
+			return openwallet.Errorf(openwallet.ErrInsufficientFees, errBalance)
 		}
 	}
 
@@ -486,7 +487,7 @@ func (this *EthTransactionDecoder) SignRawTransaction(wrapper openwallet.WalletD
 
 	if rawTx.Signatures == nil || len(rawTx.Signatures) == 0 {
 		//this.wm.Log.Std.Error("len of signatures error. ")
-		return openwallet.Errorf(openwallet.ErrSignRawTransactionFailed,"transaction signature is empty")
+		return openwallet.Errorf(openwallet.ErrSignRawTransactionFailed, "transaction signature is empty")
 	}
 
 	key, err := wrapper.HDKey()
@@ -497,12 +498,12 @@ func (this *EthTransactionDecoder) SignRawTransaction(wrapper openwallet.WalletD
 
 	if _, exist := rawTx.Signatures[rawTx.Account.AccountID]; !exist {
 		this.wm.Log.Std.Error("wallet[%v] signature not found ", rawTx.Account.AccountID)
-		return openwallet.Errorf(openwallet.ErrSignRawTransactionFailed,"wallet signature not found ")
+		return openwallet.Errorf(openwallet.ErrSignRawTransactionFailed, "wallet signature not found ")
 	}
 
 	if len(rawTx.Signatures[rawTx.Account.AccountID]) != 1 {
 		this.wm.Log.Error("signature failed in account[%v].", rawTx.Account.AccountID)
-		return openwallet.Errorf(openwallet.ErrSignRawTransactionFailed,"signature failed in account.")
+		return openwallet.Errorf(openwallet.ErrSignRawTransactionFailed, "signature failed in account.")
 	}
 
 	signnode := rawTx.Signatures[rawTx.Account.AccountID][0]
@@ -553,7 +554,7 @@ func (this *EthTransactionDecoder) SubmitSimpleRawTransaction(wrapper openwallet
 	}
 	if len(rawTx.Signatures) != 1 {
 		this.wm.Log.Std.Error("len of signatures error. ")
-		return nil, openwallet.Errorf(openwallet.ErrSubmitRawTransactionFailed,"len of signatures error. ")
+		return nil, openwallet.Errorf(openwallet.ErrSubmitRawTransactionFailed, "len of signatures error. ")
 	}
 
 	if _, exist := rawTx.Signatures[rawTx.Account.AccountID]; !exist {
@@ -589,7 +590,7 @@ func (this *EthTransactionDecoder) SubmitSimpleRawTransaction(wrapper openwallet
 	txStatis, _, err := this.GetTransactionCount2(from)
 	if err != nil {
 		this.wm.Log.Std.Error("get transaction count2 failed, err=%v", err)
-		return nil, openwallet.Errorf(openwallet.ErrSubmitRawTransactionFailed,"get transaction count2 faile")
+		return nil, openwallet.Errorf(openwallet.ErrSubmitRawTransactionFailed, "get transaction count2 faile")
 	}
 
 	//this.wm.Log.Debug("extPara.GasLimit:", extPara.GasLimit)
@@ -634,7 +635,7 @@ func (this *EthTransactionDecoder) SubmitSimpleRawTransaction(wrapper openwallet
 
 		if tx.Nonce() != *txStatis.TransactionCount {
 			this.wm.Log.Std.Error("nonce out of dated, please try to start ur tx once again. ")
-			return openwallet.Errorf(openwallet.ErrNonceInvaild,"nonce out of dated, please try to start ur tx once again. ")
+			return openwallet.Errorf(openwallet.ErrNonceInvaild, "nonce out of dated, please try to start ur tx once again. ")
 		}
 
 		//tx := types.NewTransaction(nonceSigned, ethcommon.HexToAddress(to),
@@ -657,7 +658,7 @@ func (this *EthTransactionDecoder) SubmitSimpleRawTransaction(wrapper openwallet
 		txid, err := this.wm.WalletClient.ethSendRawTransaction(ethcommon.ToHex(rawTxPara))
 		if err != nil {
 			this.wm.Log.Std.Error("sent raw tx faild, err=%v", err)
-			return openwallet.Errorf(openwallet.ErrSubmitRawTransactionFailed,"sent raw tx faild. unexpected error: %v", err)
+			return openwallet.Errorf(openwallet.ErrSubmitRawTransactionFailed, "sent raw tx faild. unexpected error: %v", err)
 		}
 
 		rawTx.TxID = txid
@@ -876,7 +877,7 @@ func (this *EthTransactionDecoder) VerifyRawTransaction(wrapper openwallet.Walle
 
 	if len(accountSig) == 0 {
 		//this.wm.Log.Std.Error("len of signatures error. ")
-		return openwallet.Errorf(openwallet.ErrVerifyRawTransactionFailed,"transaction signature is empty")
+		return openwallet.Errorf(openwallet.ErrVerifyRawTransactionFailed, "transaction signature is empty")
 	}
 
 	sig := accountSig[0].Signature
@@ -936,7 +937,7 @@ func (this *EthTransactionDecoder) CreateSimpleSummaryRawTransaction(wrapper ope
 	)
 
 	if minTransfer.Cmp(retainedBalance) < 0 {
-		return nil, openwallet.Errorf(openwallet.ErrCreateRawTransactionFailed,"mini transfer amount must be greater than address retained balance")
+		return nil, openwallet.Errorf(openwallet.ErrCreateRawTransactionFailed, "mini transfer amount must be greater than address retained balance")
 	}
 
 	//获取wallet
@@ -947,7 +948,7 @@ func (this *EthTransactionDecoder) CreateSimpleSummaryRawTransaction(wrapper ope
 	}
 
 	if len(addresses) == 0 {
-		return nil, openwallet.Errorf(openwallet.ErrAccountNotAddress,"[%s] have not addresses", accountID)
+		return nil, openwallet.Errorf(openwallet.ErrAccountNotAddress, "[%s] have not addresses", accountID)
 	}
 
 	searchAddrs := make([]string, 0)
@@ -1071,7 +1072,7 @@ func (this *EthTransactionDecoder) CreateErc20TokenSummaryRawTransaction(wrapper
 	}
 
 	if len(addresses) == 0 {
-		return nil, openwallet.Errorf(openwallet.ErrAccountNotAddress,"[%s] have not addresses", accountID)
+		return nil, openwallet.Errorf(openwallet.ErrAccountNotAddress, "[%s] have not addresses", accountID)
 	}
 
 	searchAddrs := make([]string, 0)
