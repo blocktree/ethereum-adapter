@@ -227,7 +227,7 @@ func NewTransactionDecoder(wm *WalletManager) *EthTransactionDecoder {
 	return &decoder
 }
 
-func (this *EthTransactionDecoder) CreateSimpleRawTransaction(wrapper openwallet.WalletDAI, rawTx *openwallet.RawTransaction) error {
+func (this *EthTransactionDecoder) CreateSimpleRawTransaction(wrapper openwallet.WalletDAI, rawTx *openwallet.RawTransaction, tmpNonce *uint64) error {
 
 	var (
 		accountID       = rawTx.Account.AccountID
@@ -322,7 +322,8 @@ func (this *EthTransactionDecoder) CreateSimpleRawTransaction(wrapper openwallet
 		rawTx,
 		findAddrBalance,
 		feeInfo,
-		"")
+		"",
+		tmpNonce)
 	if createTxErr != nil {
 		return createTxErr
 	}
@@ -459,7 +460,8 @@ func (this *EthTransactionDecoder) CreateErc20TokenRawTransaction(wrapper openwa
 		rawTx,
 		findAddrBalance,
 		feeInfo,
-		callData)
+		callData,
+		nil)
 	if createTxErr != nil {
 		return createTxErr
 	}
@@ -470,7 +472,7 @@ func (this *EthTransactionDecoder) CreateErc20TokenRawTransaction(wrapper openwa
 //CreateRawTransaction 创建交易单
 func (this *EthTransactionDecoder) CreateRawTransaction(wrapper openwallet.WalletDAI, rawTx *openwallet.RawTransaction) error {
 	if !rawTx.Coin.IsContract {
-		return this.CreateSimpleRawTransaction(wrapper, rawTx)
+		return this.CreateSimpleRawTransaction(wrapper, rawTx, nil)
 	}
 	return this.CreateErc20TokenRawTransaction(wrapper, rawTx)
 }
@@ -1018,7 +1020,8 @@ func (this *EthTransactionDecoder) CreateSimpleSummaryRawTransaction(wrapper ope
 			rawTx,
 			&AddrBalance{Address: addrBalance.Address, Balance: addrBalance_BI},
 			fee,
-			"")
+			"",
+			nil)
 		rawTxWithErr := &openwallet.RawTransactionWithError{
 			RawTx: rawTx,
 			Error: createTxErr,
@@ -1041,6 +1044,7 @@ func (this *EthTransactionDecoder) CreateErc20TokenSummaryRawTransaction(wrapper
 		minTransfer        *big.Int
 		retainedBalance    *big.Int
 		feesSupportAccount *openwallet.AssetsAccount
+		tmpNonce uint64
 	)
 
 	// 如果有提供手续费账户，检查账户是否存在
@@ -1051,6 +1055,23 @@ func (this *EthTransactionDecoder) CreateErc20TokenSummaryRawTransaction(wrapper
 		}
 
 		feesSupportAccount = account
+
+		//获取手续费支持账户的地址nonce
+		feesAddresses, feesSupportErr := wrapper.GetAddressList(0, 1,
+			"AccountID", feesSupportAccount.AccountID)
+		if feesSupportErr != nil {
+			return nil, openwallet.NewError(openwallet.ErrAddressNotFound, "fees support account have not addresses")
+		}
+
+		if len(feesAddresses) == 0 {
+			return nil, openwallet.Errorf(openwallet.ErrAccountNotAddress, "fees support account have not addresses")
+		}
+
+		_, nonce, feesSupportErr := this.GetTransactionCount2(feesAddresses[0].Address)
+		if feesSupportErr != nil {
+			return nil, openwallet.NewError(openwallet.ErrNonceInvaild, "fees support account get nonce failed")
+		}
+		tmpNonce = nonce
 	}
 	//tokenCoin := sumRawTx.Coin.Contract.Token
 	tokenDecimals := int(sumRawTx.Coin.Contract.Decimals)
@@ -1171,7 +1192,7 @@ func (this *EthTransactionDecoder) CreateErc20TokenSummaryRawTransaction(wrapper
 					Required: 1,
 				}
 
-				createTxErr := this.CreateRawTransaction(wrapper, rawTx)
+				createTxErr := this.CreateSimpleRawTransaction(wrapper, rawTx, &tmpNonce)
 				rawTxWithErr := &openwallet.RawTransactionWithError{
 					RawTx: rawTx,
 					Error: openwallet.ConvertError(createTxErr),
@@ -1179,6 +1200,9 @@ func (this *EthTransactionDecoder) CreateErc20TokenSummaryRawTransaction(wrapper
 
 				//创建成功，添加到队列
 				rawTxArray = append(rawTxArray, rawTxWithErr)
+
+				//需要手续费支持的地址会有很多个，nonce要连续递增以保证交易广播生效
+				tmpNonce++
 
 				//汇总下一个
 				continue
@@ -1204,7 +1228,8 @@ func (this *EthTransactionDecoder) CreateErc20TokenSummaryRawTransaction(wrapper
 			rawTx,
 			&AddrBalance{Address: addrBalance.Balance.Address, Balance: coinBalance, TokenBalance: addrBalance_BI},
 			fee,
-			callData)
+			callData,
+			nil)
 		rawTxWithErr := &openwallet.RawTransactionWithError{
 			RawTx: rawTx,
 			Error: createTxErr,
@@ -1219,7 +1244,7 @@ func (this *EthTransactionDecoder) CreateErc20TokenSummaryRawTransaction(wrapper
 }
 
 //createRawTransaction
-func (this *EthTransactionDecoder) createRawTransaction(wrapper openwallet.WalletDAI, rawTx *openwallet.RawTransaction, addrBalance *AddrBalance, fee *txFeeInfo, callData string) *openwallet.Error {
+func (this *EthTransactionDecoder) createRawTransaction(wrapper openwallet.WalletDAI, rawTx *openwallet.RawTransaction, addrBalance *AddrBalance, fee *txFeeInfo, callData string, tmpNonce *uint64) *openwallet.Error {
 
 	var (
 		accountTotalSent = decimal.Zero
@@ -1292,11 +1317,19 @@ func (this *EthTransactionDecoder) createRawTransaction(wrapper openwallet.Walle
 		return openwallet.NewError(openwallet.ErrAccountNotAddress, err.Error())
 	}
 
-	_, nonce, err := this.GetTransactionCount2(addrBalance.Address)
-	if err != nil {
-		this.wm.Log.Std.Error("GetTransactionCount2 failed, err=%v", err)
-		return openwallet.NewError(openwallet.ErrNonceInvaild, err.Error())
+	var nonce uint64
+	if tmpNonce == nil {
+		_, txNonce, err := this.GetTransactionCount2(addrBalance.Address)
+		if err != nil {
+			this.wm.Log.Std.Error("GetTransactionCount2 failed, err=%v", err)
+			return openwallet.NewError(openwallet.ErrNonceInvaild, err.Error())
+		}
+		nonce = txNonce
+	} else {
+		nonce = *tmpNonce
 	}
+
+
 	//this.wm.Log.Debug("chainID:", this.wm.GetConfig().ChainID)
 	signer := types.NewEIP155Signer(big.NewInt(int64(this.wm.GetConfig().ChainID)))
 

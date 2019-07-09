@@ -144,10 +144,10 @@ func TestTransfer_ETH(t *testing.T) {
 		return
 	}
 
-	_, err = testSubmitTransactionStep(tm, rawTx)
-	if err != nil {
-		return
-	}
+	//_, err = testSubmitTransactionStep(tm, rawTx)
+	//if err != nil {
+	//	return
+	//}
 
 }
 
@@ -193,10 +193,10 @@ func TestTransfer_ERC20(t *testing.T) {
 		return
 	}
 
-	_, err = testSubmitTransactionStep(tm, rawTx)
-	if err != nil {
-		return
-	}
+	//_, err = testSubmitTransactionStep(tm, rawTx)
+	//if err != nil {
+	//	return
+	//}
 
 }
 
