@@ -593,6 +593,7 @@ func (this *ETHBLockScanner) MakeSimpleToExtractData(tx *BlockTransaction) (stri
 			Amount:      amountVal,
 			BlockHash:   tx.BlockHash,
 			BlockHeight: tx.BlockHeight,
+			TxType:      0,
 		},
 	}
 
@@ -619,6 +620,7 @@ func (this *ETHBLockScanner) MakeSimpleToExtractData(tx *BlockTransaction) (stri
 		SubmitTime:  nowUnix,
 		ConfirmTime: nowUnix,
 		Status:      common.NewString(tx.Status).String(),
+		TxType:      0,
 	}
 
 	txExtractData := &openwallet.TxExtractData{}
@@ -766,6 +768,7 @@ func (this *ETHBLockScanner) MakeTokenToExtractData(tx *BlockTransaction, tokenE
 			Amount:      tokenValue.String(),
 			BlockHash:   tx.BlockHash,
 			BlockHeight: tx.BlockHeight,
+			TxType:      0,
 		},
 	}
 	from := []string{
@@ -788,6 +791,7 @@ func (this *ETHBLockScanner) MakeTokenToExtractData(tx *BlockTransaction, tokenE
 		SubmitTime:  nowUnix,
 		ConfirmTime: nowUnix,
 		Status:      common.NewString(tx.Status).String(),
+		TxType:      0,
 	}
 
 	tokenTransExtractData := &openwallet.TxExtractData{}
@@ -840,6 +844,7 @@ func (this *ETHBLockScanner) MakeSimpleTxFromExtractData(tx *BlockTransaction) (
 			Amount:      amountVal,
 			BlockHash:   tx.BlockHash,
 			BlockHeight: tx.BlockHeight,
+			TxType:      0,
 		},
 	}
 
@@ -856,6 +861,7 @@ func (this *ETHBLockScanner) MakeSimpleTxFromExtractData(tx *BlockTransaction) (
 			Amount:      feeprice,
 			BlockHash:   tx.BlockHash,
 			BlockHeight: tx.BlockHeight,
+			TxType:      0,
 		},
 	}
 
@@ -882,6 +888,7 @@ func (this *ETHBLockScanner) MakeSimpleTxFromExtractData(tx *BlockTransaction) (
 		SubmitTime:  nowUnix,
 		ConfirmTime: nowUnix,
 		Status:      common.NewString(tx.Status).String(),
+		TxType:      0,
 	}
 
 	txExtractData := &openwallet.TxExtractData{}
@@ -938,6 +945,7 @@ func (this *ETHBLockScanner) MakeTokenTxFromExtractData(tx *BlockTransaction, to
 			Amount:      tokenValue.String(),
 			BlockHash:   tx.BlockHash,
 			BlockHeight: tx.BlockHeight,
+			TxType:      0,
 		},
 	}
 	from := []string{
@@ -960,6 +968,7 @@ func (this *ETHBLockScanner) MakeTokenTxFromExtractData(tx *BlockTransaction, to
 		SubmitTime:  nowUnix,
 		ConfirmTime: nowUnix,
 		Status:      common.NewString(tx.Status).String(),
+		TxType:      0,
 	}
 
 	tokenTransExtractData := &openwallet.TxExtractData{}
@@ -979,6 +988,7 @@ func (this *ETHBLockScanner) MakeTokenTxFromExtractData(tx *BlockTransaction, to
 			Amount:      feeprice,
 			BlockHash:   tx.BlockHash,
 			BlockHeight: tx.BlockHeight,
+			TxType:      1,
 		},
 	}
 	from = []string{
@@ -1004,6 +1014,7 @@ func (this *ETHBLockScanner) MakeTokenTxFromExtractData(tx *BlockTransaction, to
 		SubmitTime:  nowUnix,
 		ConfirmTime: nowUnix,
 		Status:      common.NewString(tx.Status).String(),
+		TxType:      1,
 	}
 
 	feeExtractData := &openwallet.TxExtractData{}

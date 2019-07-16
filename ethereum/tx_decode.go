@@ -695,6 +695,7 @@ func (this *EthTransactionDecoder) SubmitSimpleRawTransaction(wrapper openwallet
 		AccountID:  rawTx.Account.AccountID,
 		Fees:       rawTx.Fees,
 		SubmitTime: time.Now().Unix(),
+		TxType:     0,
 	}
 
 	tx.WxID = openwallet.GenTransactionWxID(tx)
@@ -842,6 +843,7 @@ func (this *EthTransactionDecoder) SubmitErc20TokenRawTransaction(wrapper openwa
 		AccountID:  rawTx.Account.AccountID,
 		Fees:       "0",
 		SubmitTime: time.Now().Unix(),
+		TxType:     0,
 	}
 
 	tx.WxID = openwallet.GenTransactionWxID(tx)
@@ -1044,7 +1046,7 @@ func (this *EthTransactionDecoder) CreateErc20TokenSummaryRawTransaction(wrapper
 		minTransfer        *big.Int
 		retainedBalance    *big.Int
 		feesSupportAccount *openwallet.AssetsAccount
-		tmpNonce uint64
+		tmpNonce           uint64
 	)
 
 	// 如果有提供手续费账户，检查账户是否存在
@@ -1328,7 +1330,6 @@ func (this *EthTransactionDecoder) createRawTransaction(wrapper openwallet.Walle
 	} else {
 		nonce = *tmpNonce
 	}
-
 
 	//this.wm.Log.Debug("chainID:", this.wm.GetConfig().ChainID)
 	signer := types.NewEIP155Signer(big.NewInt(int64(this.wm.GetConfig().ChainID)))
