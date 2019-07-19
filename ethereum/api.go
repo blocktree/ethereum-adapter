@@ -506,7 +506,7 @@ func (this *Client) GetAddrBalance2(address string, sign string) (*big.Int, erro
 	}
 	result, err := this.Call("eth_getBalance", 1, params)
 	if err != nil {
-		log.Errorf(fmt.Sprintf("get addr[%v] balance failed, err=%v\n", address, err))
+		//log.Errorf(fmt.Sprintf("get addr[%v] balance failed, err=%v\n", address, err))
 		return big.NewInt(0), err
 	}
 	if result.Type != gjson.String {
@@ -522,10 +522,6 @@ func (this *Client) GetAddrBalance2(address string, sign string) (*big.Int, erro
 		return big.NewInt(0), errors.New(errInfo)
 	}
 	return balance, nil
-}
-
-func (this *Client) GetAddrBalance(address string) (*big.Int, error) {
-	return this.GetAddrBalance2(address, "pending")
 }
 
 func appendOxToAddress(addr string) string {

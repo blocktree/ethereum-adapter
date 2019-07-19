@@ -1,7 +1,6 @@
 package ethereum
 
 import (
-	"github.com/blocktree/openwallet/log"
 	"github.com/blocktree/openwallet/openwallet"
 )
 
@@ -32,28 +31,6 @@ func (this *WalletManager) GetBlockScanner() openwallet.BlockScanner {
 
 //ImportWatchOnlyAddress 导入观测地址
 func (this *WalletManager) ImportWatchOnlyAddress(address ...*openwallet.Address) error {
-	return nil
-}
-
-//GetAddressWithBalance 获取多个地址余额，使用查账户和单地址
-func (this *WalletManager) GetAddressWithBalance(addresses ...*openwallet.Address) error {
-	for _, addr := range addresses {
-		log.Debugf("wallet[%v] address[%v]:", addr.AccountID, addr.Address)
-		amount, err := this.WalletClient.GetAddrBalance(appendOxToAddress(addr.Address))
-		if err != nil {
-			log.Error("get address[", addr.Address, "] balance failed, err=", err)
-			return err
-		}
-
-		dm, err := ConverWeiStringToEthDecimal(amount.String())
-		if err != nil {
-			log.Error("ConverWeiStringToEthDecimal amount[", amount.String(), "] failed, err=", err)
-			return err
-		}
-
-		addr.Balance = dm.String()
-	}
-
 	return nil
 }
 

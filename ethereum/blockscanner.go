@@ -675,8 +675,9 @@ func (this *ETHBLockScanner) GetBalanceByAddress(address ...string) ([]*openwall
 
 		balanceAll, err := this.wm.WalletClient.GetAddrBalance2(appendOxToAddress(addr.Address), "pending")
 		if err != nil {
-			this.wm.Log.Errorf("get address[%v] erc20 token balance failed, err=%v", address, err)
-			return
+			//this.wm.Log.Errorf("get address[%v] erc20 token balance failed, err=%v", address, err)
+			//return
+			balanceAll = balanceConfirmed
 		}
 
 		//		this.wm.Log.Debugf("got balanceAll of [%v] :%v", address, balanceAll)
