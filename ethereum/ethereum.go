@@ -242,7 +242,7 @@ func (this *WalletManager) RecoverBlockHeader(height uint64) (*EthBlock, error) 
 		return nil, err
 	}
 
-	block.blockHeight, err = ConvertToUint64(block.BlockNumber, 16) //ConvertToBigInt(block.BlockNumber, 16)
+	block.BlockHeight, err = ConvertToUint64(block.BlockNumber, 16) //ConvertToBigInt(block.BlockNumber, 16)
 	if err != nil {
 		this.Log.Errorf("conver block height to big int failed, err= %v", err)
 		return nil, err
@@ -286,7 +286,7 @@ func (this *WalletManager) SaveBlockHeader2(block *EthBlock) error {
 	}
 
 	//blockHeightStr := "0x" + strconv.FormatUint(block.blockHeight, 16) //block.blockHeight.Text(16)
-	err = tx.Set(BLOCK_CHAIN_BUCKET, BLOCK_HEIGHT_KEY, &block.blockHeight)
+	err = tx.Set(BLOCK_CHAIN_BUCKET, BLOCK_HEIGHT_KEY, &block.BlockHeight)
 	if err != nil {
 		this.Log.Errorf("update block height failed, err= %v", err)
 		return err

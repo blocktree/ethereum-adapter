@@ -24,7 +24,7 @@ func TestEthGetBlockNumber(t *testing.T) {
 		Debug:   true,
 	}
 
-	if r, err := tw.ethGetBlockNumber(); err != nil {
+	if r, err := tw.EthGetBlockNumber(); err != nil {
 		t.Errorf("GetAccountNet failed: %v\n", err)
 	} else {
 		t.Logf("GetAccountNet return: \n\t%+v\n", r)

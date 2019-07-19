@@ -98,7 +98,7 @@ func (this *EthBlock) CreateOpenWalletBlockHeader() *openwallet.BlockHeader {
 	header := &openwallet.BlockHeader{
 		Hash:              this.BlockHash,
 		Previousblockhash: this.PreviousHash,
-		Height:            this.blockHeight,
+		Height:            this.BlockHeight,
 		Time:              uint64(time.Now().Unix()),
 	}
 	return header
@@ -106,7 +106,7 @@ func (this *EthBlock) CreateOpenWalletBlockHeader() *openwallet.BlockHeader {
 
 func (this *EthBlock) Init() error {
 	var err error
-	this.blockHeight, err = strconv.ParseUint(removeOxFromHex(this.BlockNumber), 16, 64) //ConvertToBigInt(this.BlockNumber, 16) //
+	this.BlockHeight, err = strconv.ParseUint(removeOxFromHex(this.BlockNumber), 16, 64) //ConvertToBigInt(this.BlockNumber, 16) //
 	if err != nil {
 		log.Errorf("init blockheight failed, err=%v", err)
 		return err
@@ -184,7 +184,7 @@ func (this *TxpoolContent) GetPendingTxCountForAddr(addr string) int {
 
 func (this *Client) ethGetTransactionCount(addr string) (uint64, error) {
 	params := []interface{}{
-		appendOxToAddress(addr),
+		AppendOxToAddress(addr),
 		"pending",
 	}
 
@@ -212,7 +212,7 @@ func (this *Client) ethGetTransactionCount(addr string) (uint64, error) {
 	return nonce, nil
 }
 
-func (this *Client) ethGetTxPoolContent() (*TxpoolContent, error) {
+func (this *Client) EthGetTxPoolContent() (*TxpoolContent, error) {
 	result, err := this.Call("txpool_content", 1, nil)
 	if err != nil {
 		//errInfo := fmt.Sprintf("get block[%v] failed, err = %v \n", blockNumStr,  err)
@@ -237,7 +237,7 @@ func (this *Client) ethGetTxPoolContent() (*TxpoolContent, error) {
 	return &txpool, nil
 }
 
-func (this *Client) ethGetTransactionReceipt(transactionId string) (*EthTransactionReceipt, error) {
+func (this *Client) EthGetTransactionReceipt(transactionId string) (*EthTransactionReceipt, error) {
 	params := []interface{}{
 		transactionId,
 	}
@@ -302,7 +302,7 @@ func (this *Client) ethGetBlockSpecByHash(blockHash string, showTransactionSpec 
 
 func (this *Client) EthGetTransactionByHash(txid string) (*BlockTransaction, error) {
 	params := []interface{}{
-		appendOxToAddress(txid),
+		AppendOxToAddress(txid),
 	}
 
 	var tx BlockTransaction
@@ -310,12 +310,12 @@ func (this *Client) EthGetTransactionByHash(txid string) (*BlockTransaction, err
 	result, err := this.Call("eth_getTransactionByHash", 1, params)
 	if err != nil {
 		//errInfo := fmt.Sprintf("get block[%v] failed, err = %v \n", blockNumStr,  err)
-		log.Errorf("get transaction[%v] failed, err = %v \n", appendOxToAddress(txid), err)
+		log.Errorf("get transaction[%v] failed, err = %v \n", AppendOxToAddress(txid), err)
 		return nil, err
 	}
 
 	if result.Type != gjson.JSON {
-		errInfo := fmt.Sprintf("get transaction[%v] result type failed, result type is %v", appendOxToAddress(txid), result.Type)
+		errInfo := fmt.Sprintf("get transaction[%v] result type failed, result type is %v", AppendOxToAddress(txid), result.Type)
 		log.Errorf(errInfo)
 		return nil, errors.New(errInfo)
 	}
@@ -361,7 +361,7 @@ func (this *Client) ethGetBlockSpecByBlockNum2(blockNum string, showTransactionS
 	return &ethBlock, nil
 }
 
-func (this *Client) ethGetBlockSpecByBlockNum(blockNum uint64, showTransactionSpec bool) (*EthBlock, error) {
+func (this *Client) EthGetBlockSpecByBlockNum(blockNum uint64, showTransactionSpec bool) (*EthBlock, error) {
 	blockNumStr := "0x" + strconv.FormatUint(blockNum, 16)
 	return this.ethGetBlockSpecByBlockNum2(blockNumStr, showTransactionSpec)
 }
@@ -501,7 +501,7 @@ func (this *Client) GetAddrBalance2(address string, sign string) (*big.Int, erro
 	}
 
 	params := []interface{}{
-		appendOxToAddress(address),
+		AppendOxToAddress(address),
 		sign,
 	}
 	result, err := this.Call("eth_getBalance", 1, params)
@@ -524,7 +524,7 @@ func (this *Client) GetAddrBalance2(address string, sign string) (*big.Int, erro
 	return balance, nil
 }
 
-func appendOxToAddress(addr string) string {
+func AppendOxToAddress(addr string) string {
 	if strings.Index(addr, "0x") == -1 {
 		return "0x" + addr
 	}
@@ -537,8 +537,8 @@ func makeSimpleTransactionPara(fromAddr *Address, toAddr string, amount *big.Int
 	//use password to unlock the account
 	paraMap["password"] = password
 	//use the following attr to eth_sendTransaction
-	paraMap["from"] = appendOxToAddress(fromAddr.Address)
-	paraMap["to"] = appendOxToAddress(toAddr)
+	paraMap["from"] = AppendOxToAddress(fromAddr.Address)
+	paraMap["to"] = AppendOxToAddress(toAddr)
 	paraMap["value"] = "0x" + amount.Text(16)
 	paraMap["gas"] = "0x" + fee.GasLimit.Text(16)
 	paraMap["gasPrice"] = "0x" + fee.GasPrice.Text(16)
@@ -548,8 +548,8 @@ func makeSimpleTransactionPara(fromAddr *Address, toAddr string, amount *big.Int
 func makeSimpleTransactiomnPara2(fromAddr string, toAddr string, amount *big.Int, password string) map[string]interface{} {
 	paraMap := make(map[string]interface{})
 	paraMap["password"] = password
-	paraMap["from"] = appendOxToAddress(fromAddr)
-	paraMap["to"] = appendOxToAddress(toAddr)
+	paraMap["from"] = AppendOxToAddress(fromAddr)
+	paraMap["to"] = AppendOxToAddress(toAddr)
 	paraMap["value"] = "0x" + amount.Text(16)
 	return paraMap
 }
@@ -586,8 +586,8 @@ func makeERC20TokenTransData(contractAddr string, toAddr string, amount *big.Int
 
 func makeGasEstimatePara(fromAddr string, toAddr string, value *big.Int, data string) map[string]interface{} {
 	paraMap := make(map[string]interface{})
-	paraMap["from"] = appendOxToAddress(fromAddr)
-	paraMap["to"] = appendOxToAddress(toAddr)
+	paraMap["from"] = AppendOxToAddress(fromAddr)
+	paraMap["to"] = AppendOxToAddress(toAddr)
 	if data != "" {
 		paraMap["data"] = data
 	}
@@ -679,8 +679,8 @@ func makeERC20TokenTransactionPara(fromAddr *Address, contractAddr string, data 
 	//use password to unlock the account
 	paraMap["password"] = password
 	//use the following attr to eth_sendTransaction
-	paraMap["from"] = appendOxToAddress(fromAddr.Address)
-	paraMap["to"] = appendOxToAddress(contractAddr)
+	paraMap["from"] = AppendOxToAddress(fromAddr.Address)
+	paraMap["to"] = AppendOxToAddress(contractAddr)
 	//paraMap["value"] = "0x" + amount.Text(16)
 	paraMap["gas"] = "0x" + fee.GasLimit.Text(16)
 	paraMap["gasPrice"] = "0x" + fee.GasPrice.Text(16)
@@ -829,7 +829,7 @@ func (this *Client) ethGetAccounts() ([]string, error) {
 	return accounts, nil
 }
 
-func (this *Client) ethGetBlockNumber() (uint64, error) {
+func (this *Client) EthGetBlockNumber() (uint64, error) {
 	param := make([]interface{}, 0)
 	result, err := this.Call("eth_blockNumber", 1, param)
 	if err != nil {

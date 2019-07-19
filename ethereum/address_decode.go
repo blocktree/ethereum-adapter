@@ -34,7 +34,7 @@ func (decoder *AddressDecoder) PublicKeyToAddress(pub []byte, isTestnet bool) (s
 	pkHash := owcrypt.Hash(publickKey[1:len(publickKey)], 0, owcrypt.HASH_ALG_KECCAK256)
 
 	//地址添加0x前缀
-	address :=  appendOxToAddress(addressEncoder.AddressEncode(pkHash, cfg))
+	address :=  AppendOxToAddress(addressEncoder.AddressEncode(pkHash, cfg))
 
 	return address, nil
 

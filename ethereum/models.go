@@ -177,7 +177,7 @@ type BlockTransaction struct {
 	TransactionIndex string `json:"transactionIndex"`
 	Timestamp        string `json:"timestamp"`
 	BlockHeight      uint64 //transaction scanning 的时候对其进行赋值
-	filterFunc       openwallet.BlockScanAddressFunc
+	FilterFunc       openwallet.BlockScanAddressFunc
 	Status           uint64
 }
 
@@ -226,7 +226,7 @@ type BlockHeader struct {
 	Difficulty      string `json:"difficulty"`
 	TotalDifficulty string `json:"totalDifficulty"`
 	PreviousHash    string `json:"parentHash"`
-	blockHeight     uint64 //RecoverBlockHeader的时候进行初始化
+	BlockHeight     uint64 //RecoverBlockHeader的时候进行初始化
 }
 
 func (this *Wallet) SaveAddress(dbpath string, addr *Address) error {

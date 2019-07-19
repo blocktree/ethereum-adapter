@@ -108,7 +108,7 @@ func (this *EthTransactionDecoder) GetTransactionCount2(address string) (*Addres
 		txStatis.UpdateTime()
 		return &txStatis, *txStatis.TransactionCount, nil
 	}
-	nonce, err := this.wm.GetNonceForAddress2(appendOxToAddress(address))
+	nonce, err := this.wm.GetNonceForAddress2(AppendOxToAddress(address))
 	if err != nil {
 		this.wm.Log.Std.Error("get nonce for address via rpc failed, err=%v", err)
 		return nil, 0, err
@@ -426,7 +426,7 @@ func (this *EthTransactionDecoder) CreateErc20TokenRawTransaction(wrapper openwa
 			fee.CalcFee()
 		}
 
-		coinBalance, err := this.wm.WalletClient.GetAddrBalance2(appendOxToAddress(addrBalance.Balance.Address), "pending")
+		coinBalance, err := this.wm.WalletClient.GetAddrBalance2(AppendOxToAddress(addrBalance.Balance.Address), "pending")
 		if err != nil {
 			continue
 		}
@@ -1143,7 +1143,7 @@ func (this *EthTransactionDecoder) CreateErc20TokenSummaryRawTransaction(wrapper
 		sumAmount, _ := ConvertAmountToFloatDecimal(sumAmount_BI.String(), tokenDecimals)
 		fees, _ := ConverWeiStringToEthDecimal(fee.Fee.String())
 
-		coinBalance, createErr := this.wm.WalletClient.GetAddrBalance2(appendOxToAddress(addrBalance.Balance.Address), "pending")
+		coinBalance, createErr := this.wm.WalletClient.GetAddrBalance2(AppendOxToAddress(addrBalance.Balance.Address), "pending")
 		if err != nil {
 			continue
 		}
@@ -1277,8 +1277,8 @@ func (this *EthTransactionDecoder) createRawTransaction(wrapper openwallet.Walle
 		accountTotalSent = accountTotalSent.Add(amountDec)
 	}
 
-	txFrom = []string{fmt.Sprintf("%s:%s", appendOxToAddress(addrBalance.Address), amountStr)}
-	txTo = []string{fmt.Sprintf("%s:%s", appendOxToAddress(destination), amountStr)}
+	txFrom = []string{fmt.Sprintf("%s:%s", AppendOxToAddress(addrBalance.Address), amountStr)}
+	txTo = []string{fmt.Sprintf("%s:%s", AppendOxToAddress(destination), amountStr)}
 
 	gasLimitStr, err := ConverWeiStringToEthDecimal(fee.GasLimit.String())
 	if err != nil {

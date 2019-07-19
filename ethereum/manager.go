@@ -76,7 +76,7 @@ type WalletManager struct {
 	WalletClient *Client                       // 节点客户端
 	Config       *WalletConfig                 //钱包管理配置
 	WalletsInSum map[string]*openwallet.Wallet //参与汇总的钱包
-	Blockscanner *ETHBLockScanner              //区块扫描器
+	Blockscanner openwallet.BlockScanner              //区块扫描器
 	Decoder      openwallet.AddressDecoder     //地址编码器
 	TxDecoder    openwallet.TransactionDecoder //交易单编码器
 	//	RootDir        string                        //
@@ -400,7 +400,7 @@ func (this *WalletManager) exportAddressToFile(addrs []*Address, filePath string
 
 	for _, a := range addrs {
 		//log.Std.Info("Export: %s ", a.Address)
-		content = content + appendOxToAddress(a.Address) + "\n"
+		content = content + AppendOxToAddress(a.Address) + "\n"
 	}
 
 	file.MkdirAll(this.GetConfig().AddressDir)
@@ -670,10 +670,10 @@ func (this *Client) ethGetGasPrice() (*big.Int, error) {
 
 
 func (this *WalletManager) GetNonceForAddress2(address string) (uint64, error) {
-	address = appendOxToAddress(address)
-	//txpool, err := this.WalletClient.ethGetTxPoolContent()
+	address = AppendOxToAddress(address)
+	//txpool, err := this.WalletClient.EthGetTxPoolContent()
 	//if err != nil {
-	//	this.Log.Errorf("ethGetTxPoolContent failed, err = %v", err)
+	//	this.Log.Errorf("EthGetTxPoolContent failed, err = %v", err)
 	//	return 0, err
 	//}
 	//
@@ -698,9 +698,9 @@ func (this *WalletManager) GetNonceForAddress2(address string) (uint64, error) {
 }
 
 func (this *WalletManager) GetNonceForAddress(address string) (uint64, error) {
-	txpool, err := this.WalletClient.ethGetTxPoolContent()
+	txpool, err := this.WalletClient.EthGetTxPoolContent()
 	if err != nil {
-		this.Log.Errorf("ethGetTxPoolContent failed, err = %v", err)
+		this.Log.Errorf("EthGetTxPoolContent failed, err = %v", err)
 		return 0, err
 	}
 
@@ -708,9 +708,9 @@ func (this *WalletManager) GetNonceForAddress(address string) (uint64, error) {
 	this.Log.Infof("address[%v] has %v tx in pending queue of txpool.", address, txCount)
 	for txCount > 0 {
 		time.Sleep(time.Second * 1)
-		txpool, err = this.WalletClient.ethGetTxPoolContent()
+		txpool, err = this.WalletClient.EthGetTxPoolContent()
 		if err != nil {
-			this.Log.Errorf("ethGetTxPoolContent failed, err = %v", err)
+			this.Log.Errorf("EthGetTxPoolContent failed, err = %v", err)
 			return 0, err
 		}
 
