@@ -381,7 +381,7 @@ func (this *ETHBLockScanner) GetTxPoolPendingTxs() ([]BlockTransaction, error) {
 	return txs, nil
 }
 
-func (this *WalletManager) GetErc20TokenEvent(transactionID string) (*TransferEvent, error) {
+func (this *WalletManager) GetErc20TokenEvent(transactionID string) (map[string][]*TransferEvent, error) {
 	receipt, err := this.WalletClient.EthGetTransactionReceipt(transactionID)
 	if err != nil {
 		this.Log.Errorf("get transaction receipt failed, err=%v", err)
@@ -396,7 +396,7 @@ func (this *WalletManager) GetErc20TokenEvent(transactionID string) (*TransferEv
 	return transEvent, nil
 }
 
-func (this *ETHBLockScanner) UpdateTxByReceipt(tx *BlockTransaction) (*TransferEvent, error) {
+func (this *ETHBLockScanner) UpdateTxByReceipt(tx *BlockTransaction) (map[string][]*TransferEvent, error) {
 	//过滤掉未打包交易
 	if tx.BlockHeight == 0 || tx.BlockHash == "" {
 		return nil, nil
@@ -959,38 +959,321 @@ func (this *ETHBLockScanner) TransactionScanning(tx *BlockTransaction) (*Extract
 		return &result, nil
 	}
 
-	FromSourceKey, fromExtractDataList, err := this.MakeFromExtractData(tx, tokenEvent)
-	if err != nil {
-		this.wm.Log.Errorf("MakeFromExtractData failed, err=%v", err)
-		return nil, err
+	//FromSourceKey, fromExtractDataList, err := this.MakeFromExtractData(tx, tokenEvent)
+	//if err != nil {
+	//	this.wm.Log.Errorf("MakeFromExtractData failed, err=%v", err)
+	//	return nil, err
+	//}
+	//
+	//ToSourceKey, toExtractDataList, err := this.MakeToExtractData(tx, tokenEvent)
+	//if err != nil {
+	//	this.wm.Log.Errorf("MakeToExtractData failed, err=%v", err)
+	//	return nil, err
+	//}
+	//
+	//if FromSourceKey == ToSourceKey && FromSourceKey != "" {
+	//	for i, _ := range fromExtractDataList {
+	//		for j, _ := range toExtractDataList {
+	//			if fromExtractDataList[i].Transaction.To[0] == toExtractDataList[j].Transaction.To[0] {
+	//				fromExtractDataList[i].TxOutputs = toExtractDataList[j].TxOutputs
+	//			}
+	//		}
+	//	}
+	//
+	//	result.extractData[FromSourceKey] = fromExtractDataList
+	//} else if FromSourceKey != "" && ToSourceKey != "" {
+	//	result.extractData[FromSourceKey] = fromExtractDataList
+	//	result.extractData[ToSourceKey] = toExtractDataList
+	//} else if FromSourceKey != "" {
+	//	result.extractData[FromSourceKey] = fromExtractDataList
+	//} else if ToSourceKey != "" {
+	//	result.extractData[ToSourceKey] = toExtractDataList
+	//}
+
+	isTokenTransfer := false
+	if len(tokenEvent) > 0 {
+		isTokenTransfer = true
 	}
 
-	ToSourceKey, toExtractDataList, err := this.MakeToExtractData(tx, tokenEvent)
+	//提出主币交易单
+	extractData, err := this.extractETHTransaction(tx, isTokenTransfer)
 	if err != nil {
-		this.wm.Log.Errorf("MakeToExtractData failed, err=%v", err)
 		return nil, err
 	}
-
-	if FromSourceKey == ToSourceKey && FromSourceKey != "" {
-		for i, _ := range fromExtractDataList {
-			for j, _ := range toExtractDataList {
-				if fromExtractDataList[i].Transaction.To[0] == toExtractDataList[j].Transaction.To[0] {
-					fromExtractDataList[i].TxOutputs = toExtractDataList[j].TxOutputs
-				}
-			}
+	for sourceKey, data := range extractData {
+		extractDataArray := result.extractData[sourceKey]
+		if extractDataArray == nil {
+			extractDataArray = make([]*openwallet.TxExtractData, 0)
 		}
+		extractDataArray = append(extractDataArray, data)
+		result.extractData[sourceKey] = extractDataArray
+	}
 
-		result.extractData[FromSourceKey] = fromExtractDataList
-	} else if FromSourceKey != "" && ToSourceKey != "" {
-		result.extractData[FromSourceKey] = fromExtractDataList
-		result.extractData[ToSourceKey] = toExtractDataList
-	} else if FromSourceKey != "" {
-		result.extractData[FromSourceKey] = fromExtractDataList
-	} else if ToSourceKey != "" {
-		result.extractData[ToSourceKey] = toExtractDataList
+	//提取代币交易单
+	for contractAddress, tokenEventArray := range tokenEvent {
+		//提出主币交易单
+		extractERC20Data, err := this.extractERC20Transaction(tx, contractAddress, tokenEventArray)
+		if err != nil {
+			return nil, err
+		}
+		for sourceKey, data := range extractERC20Data {
+			extractDataArray := result.extractData[sourceKey]
+			if extractDataArray == nil {
+				extractDataArray = make([]*openwallet.TxExtractData, 0)
+			}
+			extractDataArray = append(extractDataArray, data)
+			result.extractData[sourceKey] = extractDataArray
+		}
 	}
 
 	return &result, nil
+}
+
+//extractETHTransaction 提取ETH主币交易单
+func (this *ETHBLockScanner) extractETHTransaction(tx *BlockTransaction, isTokenTransfer bool) (map[string]*openwallet.TxExtractData, error) {
+
+	txExtractMap := make(map[string]*openwallet.TxExtractData)
+	from := tx.From
+	to := tx.To
+	status := "1"
+	reason := ""
+	nowUnix := time.Now().Unix()
+	txType := uint64(0)
+
+	coin := openwallet.Coin{
+		Symbol:     this.wm.Symbol(),
+		IsContract: false,
+	}
+
+	if isTokenTransfer {
+		txType = 1
+	}
+
+	ethAmount, err := tx.GetAmountEthString()
+	if err != nil {
+		return nil, err
+	}
+
+	feeprice, err := tx.GetTxFeeEthString()
+	if err != nil {
+		return nil, err
+	}
+
+	sourceKey, ok := tx.FilterFunc(from)
+	if ok {
+		input := &openwallet.TxInput{}
+		input.TxID = tx.Hash
+		input.Address = from
+		input.Amount = ethAmount
+		input.Coin = coin
+		input.Index = 0
+		input.Sid = openwallet.GenTxInputSID(tx.Hash, this.wm.Symbol(), "", 0)
+		input.CreateAt = nowUnix
+		input.BlockHeight = tx.BlockHeight
+		input.BlockHash = tx.BlockHash
+		input.TxType = txType
+
+		//transactions = append(transactions, &transaction)
+
+		ed := txExtractMap[sourceKey]
+		if ed == nil {
+			ed = openwallet.NewBlockExtractData()
+			txExtractMap[sourceKey] = ed
+		}
+
+		ed.TxInputs = append(ed.TxInputs, input)
+
+		//手续费作为一个输入
+		feeInput := &openwallet.TxInput{}
+		feeInput.Recharge.Sid = openwallet.GenTxInputSID(tx.Hash, this.wm.Symbol(), "", uint64(1))
+		feeInput.Recharge.TxID = tx.Hash
+		feeInput.Recharge.Address = from
+		feeInput.Recharge.Coin = coin
+		feeInput.Recharge.Amount = feeprice
+		feeInput.Recharge.BlockHash = tx.BlockHash
+		feeInput.Recharge.BlockHeight = tx.BlockHeight
+		feeInput.Recharge.Index = 1 //账户模型填0
+		feeInput.Recharge.CreateAt = nowUnix
+		feeInput.Recharge.TxType = txType
+
+		ed.TxInputs = append(ed.TxInputs, feeInput)
+
+	}
+
+	sourceKey2, ok2 := tx.FilterFunc(to)
+	if ok2 {
+		output := &openwallet.TxOutPut{}
+		output.TxID = tx.Hash
+		output.Address = to
+		output.Amount = ethAmount
+		output.Coin = coin
+		output.Index = 0
+		output.Sid = openwallet.GenTxInputSID(tx.Hash, this.wm.Symbol(), "", 0)
+		output.CreateAt = nowUnix
+		output.BlockHeight = tx.BlockHeight
+		output.BlockHash = tx.BlockHash
+		output.TxType = txType
+
+		ed := txExtractMap[sourceKey2]
+		if ed == nil {
+			ed = openwallet.NewBlockExtractData()
+			txExtractMap[sourceKey2] = ed
+		}
+
+		ed.TxOutputs = append(ed.TxOutputs, output)
+	}
+
+	for _, extractData := range txExtractMap {
+
+		tx := &openwallet.Transaction{
+			Fees:        feeprice,
+			Coin:        coin,
+			BlockHash:   tx.BlockHash,
+			BlockHeight: tx.BlockHeight,
+			TxID:        tx.Hash,
+			Decimal:     this.wm.Decimal(),
+			Amount:      ethAmount,
+			ConfirmTime: nowUnix,
+			From:        []string{from + ":" + ethAmount},
+			To:          []string{to + ":" + ethAmount},
+			Status:      status,
+			Reason:      reason,
+			TxType:      txType,
+		}
+
+		wxID := openwallet.GenTransactionWxID(tx)
+		tx.WxID = wxID
+		extractData.Transaction = tx
+
+	}
+	return txExtractMap, nil
+}
+
+//extractERC20Transaction
+func (this *ETHBLockScanner) extractERC20Transaction(tx *BlockTransaction, contractAddress string, tokenEvent []*TransferEvent) (map[string]*openwallet.TxExtractData, error) {
+
+	nowUnix := time.Now().Unix()
+	status := "1"
+	reason := ""
+	txExtractMap := make(map[string]*openwallet.TxExtractData)
+
+	contractId := openwallet.GenContractID(this.wm.Symbol(), contractAddress)
+	coin := openwallet.Coin{
+		Symbol:     this.wm.Symbol(),
+		IsContract: true,
+		ContractID: contractId,
+		Contract: openwallet.SmartContract{
+			ContractID: contractId,
+			Address:    contractAddress,
+			Symbol:     this.wm.Symbol(),
+		},
+	}
+
+	//提取出账部分记录
+	from, err := this.extractERC20Detail(tx, contractAddress, tokenEvent, true, txExtractMap)
+	if err != nil {
+		return nil, err
+	}
+	//提取入账部分记录
+	to, err := this.extractERC20Detail(tx, contractAddress, tokenEvent, false, txExtractMap)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, extractData := range txExtractMap {
+		tx := &openwallet.Transaction{
+			Fees:        "0",
+			Coin:        coin,
+			BlockHash:   tx.BlockHash,
+			BlockHeight: tx.BlockHeight,
+			TxID:        tx.Hash,
+			Amount:      "0",
+			ConfirmTime: nowUnix,
+			From:        from,
+			To:          to,
+			Status:      status,
+			Reason:      reason,
+			TxType:      0,
+		}
+
+		wxID := openwallet.GenTransactionWxID(tx)
+		tx.WxID = wxID
+		extractData.Transaction = tx
+
+	}
+	return txExtractMap, nil
+}
+
+//extractERC20Detail
+func (this *ETHBLockScanner) extractERC20Detail(tx *BlockTransaction, contractAddress string, tokenEvent []*TransferEvent, isInput bool, extractData map[string]*openwallet.TxExtractData) ([]string, error) {
+
+	var (
+		addrs  = make([]string, 0)
+		txType = uint64(0)
+	)
+
+	contractId := openwallet.GenContractID(this.wm.Symbol(), contractAddress)
+	coin := openwallet.Coin{
+		Symbol:     this.wm.Symbol(),
+		IsContract: true,
+		ContractID: contractId,
+		Contract: openwallet.SmartContract{
+			ContractID: contractId,
+			Address:    contractAddress,
+			Symbol:     this.wm.Symbol(),
+		},
+	}
+
+	createAt := time.Now().Unix()
+	for i, te := range tokenEvent {
+
+		address := ""
+		if isInput {
+			address = te.TokenFrom
+		} else {
+			address = te.TokenTo
+		}
+
+		tokenValue, err := ConvertToBigInt(te.Value, 16)
+		if err != nil {
+			return nil, err
+		}
+
+		sourceKey, ok := tx.FilterFunc(address)
+		if ok {
+
+			detail := openwallet.Recharge{}
+			detail.Sid = openwallet.GenTxInputSID(tx.Hash, this.wm.Symbol(), coin.ContractID, uint64(i))
+			detail.TxID = tx.Hash
+			detail.Address = address
+			detail.Coin = coin
+			detail.Amount = tokenValue.String()
+			detail.BlockHash = tx.BlockHash
+			detail.BlockHeight = tx.BlockHeight
+			detail.Index = uint64(i) //账户模型填0
+			detail.CreateAt = createAt
+			detail.TxType = txType
+
+			ed := extractData[sourceKey]
+			if ed == nil {
+				ed = openwallet.NewBlockExtractData()
+				extractData[sourceKey] = ed
+			}
+
+			if isInput {
+				txInput := &openwallet.TxInput{Recharge: detail}
+				ed.TxInputs = append(ed.TxInputs, txInput)
+			} else {
+				txOutPut := &openwallet.TxOutPut{Recharge: detail}
+				ed.TxOutputs = append(ed.TxOutputs, txOutPut)
+			}
+
+		}
+
+		addrs = append(addrs, address+":"+tokenValue.String())
+
+	}
+	return addrs, nil
 }
 
 //GetLocalNewBlock 获取本地记录的区块高度和hash

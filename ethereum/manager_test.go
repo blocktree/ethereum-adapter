@@ -16,21 +16,41 @@
 package ethereum
 
 import (
+	"github.com/astaxie/beego/config"
 	"github.com/blocktree/openwallet/log"
+	"path/filepath"
 	"testing"
 )
 
+
+var (
+	tw *WalletManager
+)
+
+func init() {
+
+	tw = testNewWalletManager()
+}
+
 func testNewWalletManager() *WalletManager {
 	wm := NewWalletManager()
-	wm.Config.ServerAPI = ""
-	//wm.Config.ServerAPI = "https://mainnet.nebulas.io"
-	wm.WalletClient = &Client{BaseURL: wm.Config.ServerAPI, Debug: true}
+
+	//读取配置
+	absFile := filepath.Join("conf", "conf.ini")
+	//log.Debug("absFile:", absFile)
+	c, err := config.NewConfig("ini", absFile)
+	if err != nil {
+		panic(err)
+	}
+	wm.LoadAssetsConfig(c)
+	wm.WalletClient.Debug = true
 	return wm
 }
 
+
 func TestWalletManager_GetErc20TokenEvent(t *testing.T) {
 	wm := testNewWalletManager()
-	txid := "0xb2356cbc9f9926c2cdbc54d9d1d2105fae1d94a08b436a99216f7ae072b1ccdd"
+	txid := "0xa10ecccac1e3ee911fec660d5d789885e472262eadf13c372d6a2b30aca9454a"
 	txevent, err := wm.GetErc20TokenEvent(txid)
 	if err != nil {
 		t.Errorf("GetErc20TokenEvent error: %v", err)

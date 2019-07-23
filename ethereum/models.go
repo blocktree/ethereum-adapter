@@ -71,15 +71,16 @@ type EthTransactionReceipt struct {
 }
 
 type TransferEvent struct {
-	TokenFrom     string
-	TokenTo       string
-	Value         string
-	FromSourceKey string //transaction scanning 的时候对其进行赋值
-	ToSourceKey   string //transaction scanning 的时候对其进行赋值
+	ContractAddress string
+	TokenFrom       string
+	TokenTo         string
+	Value           string
 }
 
-func (this *EthTransactionReceipt) ParseTransferEvent() *TransferEvent {
-	var transferEvent TransferEvent
+func (this *EthTransactionReceipt) ParseTransferEvent() map[string][]*TransferEvent {
+	var (
+		transferEvents = make(map[string][]*TransferEvent)
+	)
 	removePrefix0 := func(num string) string {
 		num = removeOxFromHex(num)
 		array := []byte(num)
@@ -117,12 +118,23 @@ func (this *EthTransactionReceipt) ParseTransferEvent() *TransferEvent {
 			continue
 		}
 
-		transferEvent.TokenFrom = "0x" + string([]byte(this.Logs[i].Topics[1])[26:66:66])
-		transferEvent.TokenTo = "0x" + string([]byte(this.Logs[i].Topics[2])[26:66:66])
-		transferEvent.Value = "0x" + removePrefix0(this.Logs[i].Data)
-		return &transferEvent
+		address := this.Logs[i].Address
+		events := transferEvents[address]
+		if events == nil {
+			events = make([]*TransferEvent, 0)
+		}
+
+		te := &TransferEvent{}
+		te.ContractAddress = this.Logs[i].Address
+		te.TokenFrom = "0x" + string([]byte(this.Logs[i].Topics[1])[26:66:66])
+		te.TokenTo = "0x" + string([]byte(this.Logs[i].Topics[2])[26:66:66])
+		te.Value = "0x" + removePrefix0(this.Logs[i].Data)
+		events = append(events, te)
+		transferEvents[address] = events
+
+		//return &transferEvent
 	}
-	return nil
+	return transferEvents
 }
 
 type Address struct {
@@ -185,12 +197,12 @@ func (this *BlockTransaction) GetAmountEthString() (string, error) {
 	amount, err := ConvertToBigInt(this.Value, 16)
 	if err != nil {
 		log.Errorf("convert amount to big.int failed, err= %v", err)
-		return "", err
+		return "0", err
 	}
 	amountVal, err := ConverWeiStringToEthDecimal(amount.String())
 	if err != nil {
 		log.Errorf("convert tx.Amount to eth decimal failed, err=%v", err)
-		return "", err
+		return "0", err
 	}
 	return amountVal.String(), nil
 }
