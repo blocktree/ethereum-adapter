@@ -320,12 +320,23 @@ func (this *WalletManager) SaveBlockHeader2(block *EthBlock) error {
 
 func (this *WalletManager) RecoverUnscannedTransactions(unscannedTxs []UnscanTransaction) ([]BlockTransaction, error) {
 	allTxs := make([]BlockTransaction, 0, len(unscannedTxs))
-	for i, _ := range unscannedTxs {
+	for _, unscanned := range unscannedTxs {
+		//this.Log.Debugf("txid: %s", unscanned.TxID)
 		var tx BlockTransaction
-		err := json.Unmarshal([]byte(unscannedTxs[i].TxSpec), &tx)
-		if err != nil {
-			this.Log.Errorf("decode json [%v] from unscanned transactions failed, err=%v", unscannedTxs[i].TxSpec, err)
-			return nil, err
+
+		if len(unscanned.TxSpec) == 0 {
+			getTx, err := this.WalletClient.EthGetTransactionByHash(unscanned.TxID)
+			if err != nil {
+				this.Log.Errorf("EthGetTransactionByHash failed, err=%v", unscanned.TxSpec, err)
+				return nil, err
+			}
+			tx = *getTx
+		} else {
+			err := json.Unmarshal([]byte(unscanned.TxSpec), &tx)
+			if err != nil {
+				this.Log.Errorf("decode json [%v] from unscanned transactions failed, err=%v", unscanned.TxSpec, err)
+				return nil, err
+			}
 		}
 		allTxs = append(allTxs, tx)
 	}
@@ -418,7 +429,11 @@ func (this *WalletManager) SaveUnscannedTransaction(tx *BlockTransaction, reason
 	}
 	defer db.Close()
 
-	txSpec, _ := json.Marshal(tx)
+	txSpec, err := json.Marshal(tx)
+	if err != nil {
+		this.Log.Warningf("txSpec json.Marshal failed, err=%v", err)
+		//return err
+	}
 
 	unscannedRecord := &UnscanTransaction{
 		TxID:        tx.Hash,

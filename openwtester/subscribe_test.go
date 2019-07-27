@@ -64,7 +64,7 @@ func TestSubscribeAddress_ETH(t *testing.T) {
 			"0x774e0300f118feff15284090dd8c77aac75f3a2d": "receiver",
 			"0x1f44cf061cfd6420cb703c2ddae6df5c650bbce4": "receiver",
 			"0xbb2cc9a3d25dc5b7391e7be1d0b672e3f9d53de9": "receiver",
-			"0xea56fa78b054e9b0c90a6924df17d53bbd1a8f80": "receiver",
+			"0x092bcd5a4a9133258ee61ba1ef7752d44bfc5a19": "receiver",
 			"0x0a3aefdb58a03d7c30b2a063e1fd49c4cb5f8b60": "contract",
 			"0x9c5974067a3cc18370480c202b9b595b180592f4": "sender",
 			"0x5ba73d2a84d0b38c56a9caa05fe0f742d7182e5e": "sender",
@@ -102,7 +102,7 @@ func TestSubscribeAddress_ETH(t *testing.T) {
 
 	//log.Debug("already got scanner:", assetsMgr)
 	scanner := assetsMgr.GetBlockScanner()
-	scanner.SetRescanBlockHeight(8199813)
+	//scanner.SetRescanBlockHeight(8223917)
 
 	if scanner == nil {
 		log.Error(symbol, "is not support block scan")
