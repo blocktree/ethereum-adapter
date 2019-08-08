@@ -1035,7 +1035,7 @@ func (this *ETHBLockScanner) extractETHTransaction(tx *BlockTransaction, isToken
 	txExtractMap := make(map[string]*openwallet.TxExtractData)
 	from := tx.From
 	to := tx.To
-	status := "1"
+	status := common.NewString(tx.Status).String()
 	reason := ""
 	nowUnix := time.Now().Unix()
 	txType := uint64(0)
@@ -1153,7 +1153,7 @@ func (this *ETHBLockScanner) extractETHTransaction(tx *BlockTransaction, isToken
 func (this *ETHBLockScanner) extractERC20Transaction(tx *BlockTransaction, contractAddress string, tokenEvent []*TransferEvent) (map[string]*openwallet.TxExtractData, error) {
 
 	nowUnix := time.Now().Unix()
-	status := "1"
+	status := common.NewString(tx.Status).String()
 	reason := ""
 	txExtractMap := make(map[string]*openwallet.TxExtractData)
 
