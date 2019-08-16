@@ -16,8 +16,10 @@
 package ethereum
 
 import (
+	"fmt"
 	"github.com/astaxie/beego/config"
 	"github.com/blocktree/openwallet/log"
+	"math/big"
 	"path/filepath"
 	"testing"
 )
@@ -57,4 +59,12 @@ func TestWalletManager_GetErc20TokenEvent(t *testing.T) {
 		return
 	}
 	log.Infof("txevent: %+v", txevent)
+}
+
+
+func TestFixGasLimit(t *testing.T) {
+	fixGasLimitStr := "sfsd"
+	fixGasLimit := new(big.Int)
+	fixGasLimit.SetString(fixGasLimitStr, 10)
+	fmt.Printf("fixGasLimit: %d\n", fixGasLimit.Int64())
 }

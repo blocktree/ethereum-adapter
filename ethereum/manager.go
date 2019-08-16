@@ -69,14 +69,13 @@ var (
 }*/
 
 type WalletManager struct {
-
 	openwallet.AssetsAdapterBase
 
 	Storage      *hdkeystore.HDKeystore        //秘钥存取
 	WalletClient *Client                       // 节点客户端
 	Config       *WalletConfig                 //钱包管理配置
 	WalletsInSum map[string]*openwallet.Wallet //参与汇总的钱包
-	Blockscanner openwallet.BlockScanner              //区块扫描器
+	Blockscanner openwallet.BlockScanner       //区块扫描器
 	Decoder      openwallet.AddressDecoder     //地址编码器
 	TxDecoder    openwallet.TransactionDecoder //交易单编码器
 	//	RootDir        string                        //
@@ -84,12 +83,12 @@ type WalletManager struct {
 	WalletInSumOld  map[string]*Wallet
 	ContractDecoder openwallet.SmartContractDecoder //
 	//StorageOld      *keystore.HDKeystore
-	ConfigPath      string
-	RootPath        string
-	DefaultConfig   string
+	ConfigPath    string
+	RootPath      string
+	DefaultConfig string
 	//SymbolID        string
 
-	Log            *log.OWLogger                 //日志工具
+	Log *log.OWLogger //日志工具
 }
 
 func (this *WalletManager) GetConfig() WalletConfig {
@@ -462,10 +461,21 @@ func (this *txFeeInfo) CalcFee() error {
 }
 
 func (this *WalletManager) GetTransactionFeeEstimated(from string, to string, value *big.Int, data string) (*txFeeInfo, error) {
-	gasLimit, err := this.WalletClient.ethGetGasEstimated(makeGasEstimatePara(from, to, value, data))
-	if err != nil {
-		this.Log.Errorf(fmt.Sprintf("get gas limit failed, err = %v\n", err))
-		return nil, err
+
+	var (
+		gasLimit *big.Int
+		err      error
+	)
+	if this.Config.FixGasLimit.Cmp(big.NewInt(0)) > 0 {
+		//配置设置固定gasLimit
+		gasLimit = this.Config.FixGasLimit
+	} else {
+		//动态计算gas消耗
+		gasLimit, err = this.WalletClient.ethGetGasEstimated(makeGasEstimatePara(from, to, value, data))
+		if err != nil {
+			this.Log.Errorf(fmt.Sprintf("get gas limit failed, err = %v\n", err))
+			return nil, err
+		}
 	}
 
 	gasPrice, err := this.WalletClient.ethGetGasPrice()
@@ -667,7 +677,6 @@ func (this *Client) ethGetGasPrice() (*big.Int, error) {
 	}
 	return gasLimit, nil
 }
-
 
 func (this *WalletManager) GetNonceForAddress2(address string) (uint64, error) {
 	address = AppendOxToAddress(address)

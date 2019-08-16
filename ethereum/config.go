@@ -115,6 +115,8 @@ type WalletConfig struct {
 	ChainID    uint64
 	//数据目录
 	DataDir string
+	//固定gasLimit值
+	FixGasLimit *big.Int
 }
 
 func makeEthDefaultConfig(ConfigFilePath string) string {
@@ -230,6 +232,9 @@ func (this *WalletManager) LoadAssetsConfig(c config.Configer) error {
 	client := &Client{BaseURL: this.Config.ServerAPI, Debug: false}
 	this.WalletClient = client
 	this.Config.DataDir = c.String("dataDir")
+	fixGasLimit := c.String("fixGasLimit")
+	this.Config.FixGasLimit = new(big.Int)
+	this.Config.FixGasLimit.SetString(fixGasLimit, 10)
 
 	//数据文件夹
 	this.Config.makeDataDir()
