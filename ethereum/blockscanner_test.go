@@ -41,3 +41,13 @@ func TestWalletManager_ethGetTransactionReceipt(t *testing.T) {
 	}
 	log.Infof("tx: %+v", tx)
 }
+
+func TestWalletManager_EthGetBlockNumber(t *testing.T) {
+	wm := testNewWalletManager()
+	maxBlockHeight, err := wm.WalletClient.EthGetBlockNumber()
+	if err != nil {
+		t.Errorf("EthGetBlockNumber failed, err=%v", err)
+		return
+	}
+	log.Infof("maxBlockHeight: %v", maxBlockHeight)
+}

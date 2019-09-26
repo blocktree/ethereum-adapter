@@ -1334,6 +1334,9 @@ func (this *EthTransactionDecoder) createRawTransaction(wrapper openwallet.Walle
 	//this.wm.Log.Debug("chainID:", this.wm.GetConfig().ChainID)
 	signer := types.NewEIP155Signer(big.NewInt(int64(this.wm.GetConfig().ChainID)))
 
+
+	gasLimit := fee.GasLimit.Uint64() * 2
+
 	if isContract {
 		//构建合约交易
 		amount, _ := ConvertFloatStringToBigInt(amountStr, tokenDecimals)
@@ -1349,7 +1352,7 @@ func (this *EthTransactionDecoder) createRawTransaction(wrapper openwallet.Walle
 		}
 
 		tx = types.NewTransaction(nonce, ethcommon.HexToAddress(rawTx.Coin.Contract.Address),
-			big.NewInt(0), fee.GasLimit.Uint64(), fee.GasPrice, ethcommon.FromHex(callData))
+			big.NewInt(0), gasLimit, fee.GasPrice, ethcommon.FromHex(callData))
 	} else {
 		//构建ETH交易
 		amount, _ := ConvertEthStringToWei(amountStr)
@@ -1362,7 +1365,7 @@ func (this *EthTransactionDecoder) createRawTransaction(wrapper openwallet.Walle
 		}
 
 		tx = types.NewTransaction(nonce, ethcommon.HexToAddress(destination),
-			amount, fee.GasLimit.Uint64(), fee.GasPrice, []byte(""))
+			amount, gasLimit, fee.GasPrice, []byte(""))
 	}
 
 	rawHex, err := rlp.EncodeToBytes(tx)
