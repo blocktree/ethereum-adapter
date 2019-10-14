@@ -1335,7 +1335,7 @@ func (this *EthTransactionDecoder) createRawTransaction(wrapper openwallet.Walle
 	signer := types.NewEIP155Signer(big.NewInt(int64(this.wm.GetConfig().ChainID)))
 
 
-	gasLimit := fee.GasLimit.Uint64() * 2
+	gasLimit := fee.GasLimit.Uint64()
 
 	if isContract {
 		//构建合约交易
