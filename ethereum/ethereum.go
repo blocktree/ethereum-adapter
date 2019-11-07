@@ -97,18 +97,21 @@ func ConvertAmountToFloatDecimal(amount string, decimals int) (decimal.Decimal, 
 		return d, err
 	}
 
-	if decimals <= 0 || decimals > 30 {
-		return d, errors.New("wrong decimal input through ")
-	}
+	damount := d.Shift(-int32(decimals))
+	return damount, nil
 
-	decimalInt := big.NewInt(1)
-	for i := 0; i < decimals; i++ {
-		decimalInt.Mul(decimalInt, big.NewInt(10))
-	}
-
-	w, _ := decimal.NewFromString(decimalInt.String())
-	d = d.Div(w)
-	return d, nil
+	//if decimals <= 0 || decimals > 30 {
+	//	return d, errors.New("wrong decimal input through ")
+	//}
+	//
+	//decimalInt := big.NewInt(1)
+	//for i := 0; i < decimals; i++ {
+	//	decimalInt.Mul(decimalInt, big.NewInt(10))
+	//}
+	//
+	//w, _ := decimal.NewFromString(decimalInt.String())
+	//d = d.Div(w)
+	//return d, nil
 }
 
 func ConverWeiStringToEthDecimal(amount string) (decimal.Decimal, error) {

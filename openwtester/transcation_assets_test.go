@@ -216,7 +216,7 @@ func TestSummary_ETH(t *testing.T) {
 	walletID := "WBGYxZ6yEX582Mx8mGvygXevdLVc7NQnLM"
 	//accountID := "AfF8aoW2M2bQwVc2aJ38cCGEcnXF3WCsma1Day7zGA4C"
 	accountID := "3csEgf2TcxwNeoFSTsePXFVmzcyNhHAS49jsTv99n1Nv"
-	summaryAddress := "0xd35f9ea14d063af9b3567064fab567275b09f03d"
+	summaryAddress := "0xd35f9Ea14D063af9B3567064FAB567275b09f03D"
 
 	testGetAssetsAccountBalance(tm, walletID, accountID)
 
