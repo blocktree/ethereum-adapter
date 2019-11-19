@@ -17,11 +17,13 @@ package openwtester
 
 import (
 	"github.com/astaxie/beego/config"
+	"github.com/blocktree/openwallet/common/file"
 	"github.com/blocktree/openwallet/log"
 	"github.com/blocktree/openwallet/openw"
 	"github.com/blocktree/openwallet/openwallet"
 	"path/filepath"
 	"testing"
+	"time"
 )
 
 ////////////////////////// 测试单个扫描器 //////////////////////////
@@ -58,9 +60,9 @@ func TestSubscribeAddress_ETH(t *testing.T) {
 		endRunning = make(chan bool, 1)
 		symbol     = "ETH"
 		//accountID  = "HgRBsaiKgoVDagwezos496vqKQCh41pY44JbhW65YA8t"
-		addrs      = map[string]string{
-			"0xd35f9ea14d063af9b3567064fab567275b09f03d": "sender",
-			"0xa8a4b2d37c591db3310df648942bf3351cecd984": "receiver",
+		addrs = map[string]string{
+			"0xae406e9ce29d9d31e11f18dac7c8daea9e64833a": "sender",
+			"0x88a520856df657dbb84a884774248453c2efb99b": "receiver",
 		}
 	)
 
@@ -95,7 +97,19 @@ func TestSubscribeAddress_ETH(t *testing.T) {
 
 	//log.Debug("already got scanner:", assetsMgr)
 	scanner := assetsMgr.GetBlockScanner()
-	scanner.SetRescanBlockHeight(8887571)
+	if scanner.SupportBlockchainDAI() {
+		dbFilePath := filepath.Join("data", "db")
+		dbFileName := "blockchain.db"
+		file.MkdirAll(dbFilePath)
+		dai, err := openwallet.NewBlockchainLocal(filepath.Join(dbFilePath, dbFileName), false)
+		if err != nil {
+			log.Error("NewBlockchainLocal err: %v", err)
+			return
+		}
+
+		scanner.SetBlockchainDAI(dai)
+	}
+	//scanner.SetRescanBlockHeight(8883967)
 
 	if scanner == nil {
 		log.Error(symbol, "is not support block scan")
@@ -181,4 +195,66 @@ func TestBlockScanner_ExtractTransactionData(t *testing.T) {
 		}
 	}
 
+}
+
+func TestRescanHeight_ETH(t *testing.T) {
+
+	var (
+		endRunning = make(chan bool, 1)
+		symbol     = "ETH"
+		//accountID  = "HgRBsaiKgoVDagwezos496vqKQCh41pY44JbhW65YA8t"
+		addrs = map[string]string{
+			"0xae406e9ce29d9d31e11f18dac7c8daea9e64833a": "sender",
+			"0x88a520856df657dbb84a884774248453c2efb99b": "receiver",
+		}
+	)
+
+	//GetSourceKeyByAddress 获取地址对应的数据源标识
+	scanAddressFunc := func(address string) (string, bool) {
+		key, ok := addrs[address]
+		if !ok {
+			return "", false
+		}
+		return key, true
+	}
+
+	assetsMgr, err := openw.GetAssetsAdapter(symbol)
+	if err != nil {
+		log.Error(symbol, "is not support")
+		return
+	}
+
+	//读取配置
+	absFile := filepath.Join(configFilePath, symbol+".ini")
+
+	c, err := config.NewConfig("ini", absFile)
+	if err != nil {
+		return
+	}
+	assetsMgr.LoadAssetsConfig(c)
+
+	assetsLogger := assetsMgr.GetAssetsLogger()
+	if assetsLogger != nil {
+		assetsLogger.SetLogFuncCall(true)
+	}
+
+	//log.Debug("already got scanner:", assetsMgr)
+	scanner := assetsMgr.GetBlockScanner()
+	if scanner == nil {
+		log.Error(symbol, "is not support block scan")
+		return
+	}
+
+	scanner.SetBlockScanAddressFunc(scanAddressFunc)
+
+	sub := subscriberSingle{}
+	scanner.AddObserver(&sub)
+
+	scanner.Run()
+
+	time.Sleep(10 * time.Second)
+
+	scanner.ScanBlock(8883967)
+
+	<-endRunning
 }

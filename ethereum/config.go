@@ -79,7 +79,7 @@ type WalletConfig struct {
 	//rpc证书
 	//CertFileName string
 	//区块链数据文件
-	BlockchainFile string
+	//BlockchainFile string
 	//是否测试网络
 	IsTestNet bool
 	// 核心钱包是否只做监听
@@ -122,14 +122,6 @@ type WalletConfig struct {
 func makeEthDefaultConfig(ConfigFilePath string) string {
 
 	defaultConfigStr := `
-SymbolID = "ETH"
-CurveType = %v
-#block chain db name
-BlockchainFile = "blockchain.db"
-#wallet api url
-ServerAPI = "http://127.0.0.1:8545"
-#block chain ID
-ChainID = 12
 `
 	return fmt.Sprintf(defaultConfigStr, CurveType)
 }
@@ -139,7 +131,7 @@ func NewConfig(symbol string) *WalletConfig {
 	c.Symbol = symbol
 	c.CurveType = CurveType
 	//区块链数据文件
-	c.BlockchainFile = "blockchain.db"
+	//c.BlockchainFile = "blockchain.db"
 	//本地数据库文件路径
 	c.DbPath = filepath.Join("data", strings.ToLower(c.Symbol), "db")
 
@@ -271,7 +263,7 @@ func (this *WalletConfig) LoadConfig(configFilePath string, configFileName strin
 	//配置文件名
 	this.ConfigFileName = c.String("ConfigFileName") //"eth.ini"
 	//区块链数据文件
-	this.BlockchainFile = c.String("BlockchainFile") //"blockchain.db"
+	//this.BlockchainFile = c.String("BlockchainFile") //"blockchain.db"
 	//是否测试网络
 	isTestNet, err := c.Bool("isTestNet")
 	if err != nil {

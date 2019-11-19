@@ -15,10 +15,8 @@
 package ethereum
 
 import (
-	"encoding/json"
 	"errors"
-	"github.com/asdine/storm"
-	"strconv"
+	"github.com/blocktree/openwallet/openwallet"
 	//"log"
 	"math/big"
 
@@ -159,152 +157,6 @@ func toHexBigIntForEtherTrans(value string, base int, unit int64) (*big.Int, err
 	return amount, nil
 }
 
-func (this *WalletManager) GetLocalBlockHeight() (uint64, error) {
-	db, err := OpenDB(this.GetConfig().DbPath, this.GetConfig().BlockchainFile)
-	if err != nil {
-		this.Log.Errorf("open db for get local block height failed, err=%v", err)
-		return 0, err
-	}
-	defer db.Close()
-	var blockHeight uint64
-	err = db.Get(BLOCK_CHAIN_BUCKET, BLOCK_HEIGHT_KEY, &blockHeight)
-	if err != nil {
-		this.Log.Errorf("get block height from db failed, err=%v", err)
-		return 0, err
-	}
-	// blockHeight, err := ConvertToUint64(blockHeightStr, 16) //ConvertToBigInt(blockHeightStr, 16)
-	// if err != nil {
-	// 	this.Log.Errorf("convert block height string failed, err=%v", err)
-	// 	return 0, err
-	// }
-	return blockHeight, nil
-}
-
-func (this *WalletManager) SaveLocalBlockScanned(blockHeight uint64, blockHash string) error {
-	db, err := OpenDB(this.GetConfig().DbPath, this.GetConfig().BlockchainFile)
-	if err != nil {
-		this.Log.Errorf("open db for update local block height failed, err=%v", err)
-		return err
-	}
-	defer db.Close()
-
-	tx, err := db.Begin(true)
-	if err != nil {
-		this.Log.Errorf("start transaction for save block scanned failed, err=%v", err)
-		return err
-	}
-	defer tx.Rollback()
-
-	//blockHeightStr := "0x" + strconv.FormatUint(blockHeight, 16) //blockHeight.Text(16)
-	err = tx.Set(BLOCK_CHAIN_BUCKET, BLOCK_HEIGHT_KEY, &blockHeight)
-	if err != nil {
-		this.Log.Errorf("update block height failed, err= %v", err)
-		return err
-	}
-
-	err = tx.Set(BLOCK_CHAIN_BUCKET, BLOCK_HASH_KEY, &blockHash)
-	if err != nil {
-		this.Log.Errorf("update block height failed, err= %v", err)
-		return err
-	}
-
-	tx.Commit()
-	return nil
-}
-
-func (this *WalletManager) UpdateLocalBlockHeight(blockHeight uint64) error {
-	db, err := OpenDB(this.GetConfig().DbPath, this.GetConfig().BlockchainFile)
-	if err != nil {
-		this.Log.Errorf("open db for update local block height failed, err=%v", err)
-		return err
-	}
-	defer db.Close()
-
-	//blockHeightStr := "0x" + strconv.FormatUint(blockHeight, 16) //blockHeight.Text(16)
-	err = db.Set(BLOCK_CHAIN_BUCKET, BLOCK_HEIGHT_KEY, &blockHeight)
-	if err != nil {
-		this.Log.Errorf("update block height failed, err= %v", err)
-		return err
-	}
-
-	return nil
-}
-
-func (this *WalletManager) RecoverBlockHeader(height uint64) (*EthBlock, error) {
-	db, err := OpenDB(this.GetConfig().DbPath, this.GetConfig().BlockchainFile)
-	if err != nil {
-		this.Log.Errorf("open db for save block failed, err=%v", err)
-		return nil, err
-	}
-	defer db.Close()
-	var block EthBlock
-
-	err = db.One("BlockNumber", "0x"+strconv.FormatUint(height, 16), &block.BlockHeader)
-	if err != nil {
-		this.Log.Errorf("get block failed, block number=%v, err=%v", "0x"+strconv.FormatUint(height, 16), err)
-		return nil, err
-	}
-
-	block.BlockHeight, err = ConvertToUint64(block.BlockNumber, 16) //ConvertToBigInt(block.BlockNumber, 16)
-	if err != nil {
-		this.Log.Errorf("conver block height to big int failed, err= %v", err)
-		return nil, err
-	}
-	return &block, nil
-}
-
-func (this *WalletManager) SaveBlockHeader(block *EthBlock) error {
-	db, err := OpenDB(this.GetConfig().DbPath, this.GetConfig().BlockchainFile)
-	if err != nil {
-		this.Log.Errorf("open db for save block failed, err=%v", err)
-		return err
-	}
-	defer db.Close()
-	err = db.Save(&block.BlockHeader)
-	if err != nil {
-		this.Log.Errorf("save block failed, err = %v", err)
-		return err
-	}
-	return nil
-}
-
-func (this *WalletManager) SaveBlockHeader2(block *EthBlock) error {
-	db, err := OpenDB(this.GetConfig().DbPath, this.GetConfig().BlockchainFile)
-	if err != nil {
-		this.Log.Errorf("open db for save block failed, err=%v", err)
-		return err
-	}
-	defer db.Close()
-	tx, err := db.Begin(true)
-	if err != nil {
-		this.Log.Errorf("start transaction for save block header failed, err=%v", err)
-		return err
-	}
-	defer tx.Rollback()
-
-	err = tx.Save(&block.BlockHeader)
-	if err != nil {
-		this.Log.Errorf("save block failed, err = %v", err)
-		return err
-	}
-
-	//blockHeightStr := "0x" + strconv.FormatUint(block.blockHeight, 16) //block.blockHeight.Text(16)
-	err = tx.Set(BLOCK_CHAIN_BUCKET, BLOCK_HEIGHT_KEY, &block.BlockHeight)
-	if err != nil {
-		this.Log.Errorf("update block height failed, err= %v", err)
-		return err
-	}
-
-	err = tx.Set(BLOCK_CHAIN_BUCKET, BLOCK_HASH_KEY, &block.BlockHash)
-	if err != nil {
-		this.Log.Errorf("update block height failed, err= %v", err)
-		return err
-	}
-
-	tx.Commit()
-	return nil
-}
-
 /*func (this *WalletManager) SaveTransaction(tx *BlockTransaction) error {
 	db, err := OpenDB(DbPath, BLOCK_CHAIN_DB)
 	if err != nil {
@@ -321,136 +173,21 @@ func (this *WalletManager) SaveBlockHeader2(block *EthBlock) error {
 	return nil
 }*/
 
-func (this *WalletManager) RecoverUnscannedTransactions(unscannedTxs []UnscanTransaction) ([]BlockTransaction, error) {
+func (this *WalletManager) RecoverUnscannedTransactions(unscannedTxs []*openwallet.UnscanRecord) ([]BlockTransaction, error) {
 	allTxs := make([]BlockTransaction, 0, len(unscannedTxs))
 	for _, unscanned := range unscannedTxs {
 		//this.Log.Debugf("txid: %s", unscanned.TxID)
 		var tx BlockTransaction
 
-		if len(unscanned.TxSpec) == 0 {
-			getTx, err := this.WalletClient.EthGetTransactionByHash(unscanned.TxID)
-			if err != nil {
-				this.Log.Errorf("EthGetTransactionByHash failed, err=%v", unscanned.TxSpec, err)
-				return nil, err
-			}
-			tx = *getTx
-		} else {
-			err := json.Unmarshal([]byte(unscanned.TxSpec), &tx)
-			if err != nil {
-				this.Log.Errorf("decode json [%v] from unscanned transactions failed, err=%v", unscanned.TxSpec, err)
-				return nil, err
-			}
+		getTx, err := this.WalletClient.EthGetTransactionByHash(unscanned.TxID)
+		if err != nil {
+			return nil, err
 		}
+		tx = *getTx
+
 		allTxs = append(allTxs, tx)
 	}
 	return allTxs, nil
-}
-
-func (this *WalletManager) GetAllUnscannedTransactions() ([]UnscanTransaction, error) {
-	db, err := OpenDB(this.GetConfig().DbPath, this.GetConfig().BlockchainFile)
-	if err != nil {
-		this.Log.Errorf("open db for save block failed, err=%v", err)
-		return nil, err
-	}
-	defer db.Close()
-
-	var allRecords []UnscanTransaction
-	err = db.All(&allRecords)
-	if err != nil {
-		this.Log.Errorf("get all unscanned transactions failed, err = %v", err)
-		return nil, err
-	}
-
-	return allRecords, nil
-}
-
-func (this *WalletManager) DeleteUnscannedTransactions(list []UnscanTransaction) error {
-	db, err := OpenDB(this.GetConfig().DbPath, this.GetConfig().BlockchainFile)
-	if err != nil {
-		this.Log.Errorf("open db for save block failed, err=%v", err)
-		return err
-	}
-	defer db.Close()
-
-	tx, err := db.Begin(true)
-	if err != nil {
-		log.Errorf("start transaction failed, err=%v", err)
-		return err
-	}
-	defer tx.Rollback()
-
-	for i, _ := range list {
-		err = tx.DeleteStruct(&list[i])
-		if err != nil {
-			log.Errorf("delete unscanned tx faled, err= %v", err)
-			return err
-		}
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		log.Error("commit failed, err=%v", err)
-		return err
-	}
-	return nil
-}
-
-func (this *WalletManager) DeleteUnscannedTransactionByHeight(height uint64) error {
-	db, err := OpenDB(this.GetConfig().DbPath, this.GetConfig().BlockchainFile)
-	if err != nil {
-		this.Log.Errorf("open db for save block failed, err=%v", err)
-		return err
-	}
-	defer db.Close()
-
-	var list []UnscanTransaction
-	heightStr := "0x" + strconv.FormatUint(height, 16)
-	err = db.Find("BlockNumber", heightStr, &list)
-	if err != nil && err != storm.ErrNotFound {
-		this.Log.Errorf("find unscanned tx failed, block height=%v, err=%v", heightStr, err)
-		return err
-	} else if err == storm.ErrNotFound {
-		this.Log.Infof("no unscanned tx found in block [%v]", heightStr)
-		return nil
-	}
-
-	for _, r := range list {
-		err = db.DeleteStruct(&r)
-		if err != nil {
-			this.Log.Errorf("delete unscanned tx faled, block height=%v, err=%v", heightStr, err)
-			return err
-		}
-	}
-	return nil
-}
-
-func (this *WalletManager) SaveUnscannedTransaction(tx *BlockTransaction, reason string) error {
-	db, err := OpenDB(this.GetConfig().DbPath, this.GetConfig().BlockchainFile)
-	if err != nil {
-		this.Log.Errorf("open db for save block failed, err=%v", err)
-		return err
-	}
-	defer db.Close()
-
-	txSpec, err := json.Marshal(tx)
-	if err != nil {
-		this.Log.Warningf("txSpec json.Marshal failed, err=%v", err)
-		//return err
-	}
-
-	unscannedRecord := &UnscanTransaction{
-		TxID:        tx.Hash,
-		BlockNumber: tx.BlockNumber,
-		BlockHash:   tx.BlockHash,
-		TxSpec:      string(txSpec),
-		Reason:      reason,
-	}
-	err = db.Save(unscannedRecord)
-	if err != nil {
-		this.Log.Errorf("save unscanned record failed, err=%v", err)
-		return err
-	}
-	return nil
 }
 
 //GetAssetsLogger 获取资产账户日志工具

@@ -167,15 +167,6 @@ func (this *Address) CalcHexPrivKey(masterKey *hdkeystore.HDKey) (string, error)
 	return hexutil.Encode(prikey), nil
 }
 
-type UnscanTransaction struct {
-	TxID        string `storm:"id"` // primary key
-	BlockNumber string `storm:"index"`
-	BlockHash   string `storm:"index"`
-	//	TxID        string
-	TxSpec string
-	Reason string
-}
-
 type BlockTransaction struct {
 	Hash             string `json:"hash" storm:"id"`
 	BlockNumber      string `json:"blockNumber" storm:"index"`
@@ -329,86 +320,6 @@ func (this *Wallet) DumpWalletDB(dbPath string) {
 		fmt.Printf("print tx[%v] in block [%v] = %v\n", txs[i].Hash, txs[i].BlockNumber, txs[i])
 	}
 }
-
-func (this *WalletManager) ClearBlockScanDb() {
-	db, err := OpenDB(this.GetConfig().DbPath, this.GetConfig().BlockchainFile)
-	if err != nil {
-		this.Log.Errorf("open db failed, err = %v", err)
-		return
-	}
-	defer db.Close()
-
-	var unscanTransactions []UnscanTransaction
-	var blocks []BlockHeader
-
-	err = db.All(&unscanTransactions)
-	if err != nil {
-		this.Log.Errorf("get transactions failed, err = %v", err)
-		return
-	}
-
-	for i, _ := range unscanTransactions {
-		err = db.DeleteStruct(&unscanTransactions[i])
-		if err != nil {
-			this.Log.Errorf("delete transaction failed, err=%v", err)
-			return
-		}
-	}
-
-	err = db.All(&blocks)
-	if err != nil {
-		this.Log.Errorf("get blocks failed failed, err = %v", err)
-		return
-	}
-
-	for i, _ := range blocks {
-		err = db.DeleteStruct(&blocks[i])
-		if err != nil {
-			this.Log.Errorf("delete blocks failed, err=%v", err)
-			return
-		}
-	}
-}
-
-//func (this *WalletManager) DumpBlockScanDb() {
-//	db, err := OpenDB(this.GetConfig().DbPath, this.GetConfig().BlockchainFile)
-//	if err != nil {
-//		this.Log.Errorf("open db failed, err = %v", err)
-//		return
-//	}
-//	defer db.Close()
-//
-//	var unscanTransactions []UnscanTransaction
-//	var blocks []BlockHeader
-//	var blockHeightStr string
-//	err = db.All(&unscanTransactions)
-//	if err != nil {
-//		this.Log.Errorf("get transactions failed, err = %v", err)
-//		return
-//	}
-//
-//	for i, _ := range unscanTransactions {
-//		fmt.Printf("Print unscanned transaction [%v] = %v\n", unscanTransactions[i].TxID, unscanTransactions[i])
-//	}
-//
-//	err = db.All(&blocks)
-//	if err != nil {
-//		this.Log.Errorf("get blocks failed failed, err = %v", err)
-//		return
-//	}
-//
-//	for i, _ := range blocks {
-//		fmt.Printf("print block [%v] = %v\n", blocks[i].BlockNumber, blocks[i])
-//	}
-//
-//	err = db.Get(BLOCK_CHAIN_BUCKET, "BlockNumber", &blockHeightStr)
-//	if err != nil {
-//		this.Log.Errorf("get block height from db failed, err=%v", err)
-//		return
-//	}
-//
-//	fmt.Println("print block number = ", blockHeightStr)
-//}
 
 func (this *Wallet) SaveTransactions(dbPath string, txs []BlockTransaction) error {
 	db, err := this.OpenDB(dbPath)

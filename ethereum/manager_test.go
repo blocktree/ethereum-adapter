@@ -68,3 +68,14 @@ func TestFixGasLimit(t *testing.T) {
 	fixGasLimit.SetString(fixGasLimitStr, 10)
 	fmt.Printf("fixGasLimit: %d\n", fixGasLimit.Int64())
 }
+
+func TestWalletManager_GetAddrBalance(t *testing.T) {
+	wm := testNewWalletManager()
+	balance, err := wm.WalletClient.GetAddrBalance2("", "pending")
+	if err != nil {
+		t.Errorf("GetAddrBalance2 error: %v", err)
+		return
+	}
+	ethB, err := ConverWeiStringToEthDecimal(balance.String())
+	log.Infof("ethB: %v", ethB)
+}
