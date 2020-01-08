@@ -61,8 +61,7 @@ func TestSubscribeAddress_ETH(t *testing.T) {
 		symbol     = "ETH"
 		//accountID  = "HgRBsaiKgoVDagwezos496vqKQCh41pY44JbhW65YA8t"
 		addrs = map[string]string{
-			"0xae406e9ce29d9d31e11f18dac7c8daea9e64833a": "sender",
-			"0x88a520856df657dbb84a884774248453c2efb99b": "receiver",
+			"0x88a520856df657dbb84a884774248453c2efb99b": "sender",
 		}
 	)
 
@@ -109,7 +108,7 @@ func TestSubscribeAddress_ETH(t *testing.T) {
 
 		scanner.SetBlockchainDAI(dai)
 	}
-	//scanner.SetRescanBlockHeight(8883967)
+	scanner.SetRescanBlockHeight(8967374)
 
 	if scanner == nil {
 		log.Error(symbol, "is not support block scan")

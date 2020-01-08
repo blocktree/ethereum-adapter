@@ -895,11 +895,10 @@ func (this *EthTransactionDecoder) VerifyRawTransaction(wrapper openwallet.Walle
 	signature := ethcommon.FromHex(sig)
 	publickKey := owcrypt.PointDecompress(ethcommon.FromHex(pubkey), owcrypt.ECC_CURVE_SECP256K1)
 	publickKey = publickKey[1:len(publickKey)]
-	ret := owcrypt.Verify(publickKey, nil, 0, ethcommon.FromHex(msg), 32, signature[0:len(signature)-1],
-		owcrypt.ECC_CURVE_SECP256K1|owcrypt.HASH_OUTSIDE_FLAG)
+	ret := owcrypt.Verify(publickKey, nil, ethcommon.FromHex(msg), signature[0:len(signature)-1], owcrypt.ECC_CURVE_SECP256K1)
 	if ret != owcrypt.SUCCESS {
 		errinfo := fmt.Sprintf("verify error, ret:%v\n", "0x"+strconv.FormatUint(uint64(ret), 16))
-		fmt.Println(errinfo)
+		//fmt.Println(errinfo)
 		return errors.New(errinfo)
 	}
 
@@ -1334,7 +1333,6 @@ func (this *EthTransactionDecoder) createRawTransaction(wrapper openwallet.Walle
 	//this.wm.Log.Debug("chainID:", this.wm.GetConfig().ChainID)
 	signer := types.NewEIP155Signer(big.NewInt(int64(this.wm.GetConfig().ChainID)))
 
-
 	gasLimit := fee.GasLimit.Uint64()
 
 	if isContract {
@@ -1387,6 +1385,7 @@ func (this *EthTransactionDecoder) createRawTransaction(wrapper openwallet.Walle
 		Nonce:   "0x" + strconv.FormatUint(nonce, 16),
 		Address: addr,
 		Message: hex.EncodeToString(msg[:]),
+		RSV:     true,
 	}
 	keySignList = append(keySignList, &signature)
 
