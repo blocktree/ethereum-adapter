@@ -563,7 +563,7 @@ func ConvertToUint64(value string, base int) (uint64, error) {
 
 	rst, err := strconv.ParseUint(v, base, 64)
 	if err != nil {
-		log.Errorf("convert string[%v] to int failed, err = %v", value, err)
+		//log.Errorf("convert string[%v] to int failed, err = %v", value, err)
 		return 0, err
 	}
 	return rst, nil
