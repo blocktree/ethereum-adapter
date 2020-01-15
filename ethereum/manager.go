@@ -734,3 +734,18 @@ func (this *WalletManager) GetNonceForAddress(address string) (uint64, error) {
 	}
 	return nonce, nil
 }
+
+func (this *WalletManager) SetNetworkChainID() (uint64, error) {
+
+	result, err := this.WalletClient.Call("eth_chainId", 1, nil)
+	if err != nil {
+		return 0, err
+	}
+	id, err := ConvertToUint64(result.String(), 16)
+	if err != nil {
+		return 0, err
+	}
+	this.Config.ChainID = id
+	this.Log.Debugf("Network chainID: %d", this.Config.ChainID)
+	return id, nil
+}

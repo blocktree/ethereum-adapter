@@ -79,3 +79,13 @@ func TestWalletManager_GetAddrBalance(t *testing.T) {
 	ethB, err := ConverWeiStringToEthDecimal(balance.String())
 	log.Infof("ethB: %v", ethB)
 }
+
+func TestWalletManager_SetNetworkChainID(t *testing.T) {
+	wm := testNewWalletManager()
+	id, err := wm.SetNetworkChainID()
+	if err != nil {
+		t.Errorf("GetAddrBalance2 error: %v", err)
+		return
+	}
+	log.Infof("chainID: %d", id)
+}

@@ -211,12 +211,12 @@ func (this *WalletManager) LoadAssetsConfig(c config.Configer) error {
 	//}
 	//this.Config.LocalNonce = localnonce //c.Bool("LocalNonce")
 	//区块链ID
-	chainId, err := c.Int64("ChainID")
-	if err != nil {
-		log.Error("ChainID error, err=", err)
-		return err
-	}
-	this.Config.ChainID = uint64(chainId) //c.Int64("ChainID") //12
+	//chainId, err := c.Int64("ChainID")
+	//if err != nil {
+	//	log.Error("ChainID error, err=", err)
+	//	return err
+	//}
+	//this.Config.ChainID = uint64(chainId) //c.Int64("ChainID") //12
 
 	//this.StorageOld = keystore.NewHDKeystore(this.Config.KeyDir, keystore.StandardScryptN, keystore.StandardScryptP)
 	//storage := hdkeystore.NewHDKeystore(this.Config.KeyDir, hdkeystore.StandardScryptN, hdkeystore.StandardScryptP)
@@ -230,6 +230,9 @@ func (this *WalletManager) LoadAssetsConfig(c config.Configer) error {
 
 	//数据文件夹
 	this.Config.makeDataDir()
+
+	//设置网络chainID
+	this.SetNetworkChainID()
 
 	return nil
 }
