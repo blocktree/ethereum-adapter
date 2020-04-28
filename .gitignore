@@ -4,3 +4,4 @@ release
 .idea
 *.key
 *.ini
+go.sum

@@ -16,14 +16,15 @@
 package ethereum
 
 import (
-	"github.com/blocktree/openwallet/log"
+	"github.com/blocktree/openwallet/v2/log"
+	"github.com/blocktree/openwallet/v2/openwallet"
 	"testing"
 )
 
 func TestWalletManager_EthGetTransactionByHash(t *testing.T) {
 	wm := testNewWalletManager()
-	txid := "0xaf50436156307f7642449d60247417d214346e067dd6b5fa9b7ecc060e8a2206"
-	tx, err := wm.WalletClient.EthGetTransactionByHash(txid)
+	txid := "0xae1e5a3ab5ba582b250a6def0ad280e135c8b4c3c3dfd23ec9d32ebc1243099a"
+	tx, err := wm.GetTransactionByHash(txid)
 	if err != nil {
 		t.Errorf("get transaction by has failed, err=%v", err)
 		return
@@ -33,8 +34,8 @@ func TestWalletManager_EthGetTransactionByHash(t *testing.T) {
 
 func TestWalletManager_ethGetTransactionReceipt(t *testing.T) {
 	wm := testNewWalletManager()
-	txid := "0x24f3accc0a71408a19f7a55b55db476cc94f3bcc0356b0d6e94c3ba5ae67608b"
-	tx, err := wm.WalletClient.EthGetTransactionReceipt(txid)
+	txid := "0xae1e5a3ab5ba582b250a6def0ad280e135c8b4c3c3dfd23ec9d32ebc1243099a"
+	tx, err := wm.GetTransactionReceipt(txid)
 	if err != nil {
 		t.Errorf("get transaction by has failed, err=%v", err)
 		return
@@ -44,10 +45,65 @@ func TestWalletManager_ethGetTransactionReceipt(t *testing.T) {
 
 func TestWalletManager_EthGetBlockNumber(t *testing.T) {
 	wm := testNewWalletManager()
-	maxBlockHeight, err := wm.WalletClient.EthGetBlockNumber()
+	maxBlockHeight, err := wm.GetBlockNumber()
 	if err != nil {
 		t.Errorf("EthGetBlockNumber failed, err=%v", err)
 		return
 	}
 	log.Infof("maxBlockHeight: %v", maxBlockHeight)
+}
+
+func TestBlockScanner_ExtractTransactionAndReceiptData(t *testing.T) {
+	wm := testNewWalletManager()
+
+	addrs := map[string]openwallet.ScanTargetResult{
+		"0x3440f720862aa7dfd4f86ecc78542b3ded900c02": openwallet.ScanTargetResult{
+			SourceKey: "receiver",
+			Exist:     true,
+		},
+
+		"0xbff77bb15fec867b7db7b18a34fca6d20712ce2b": openwallet.ScanTargetResult{
+			SourceKey: "GOOD",
+			Exist:     true,
+			TargetInfo: &openwallet.SmartContract{
+				ContractID: "GOOD",
+				Symbol:     "ETH",
+				Address:    "0xbff77bb15fec867b7db7b18a34fca6d20712ce2b",
+				Token:      "S",
+				Protocol:   "",
+				Name:       "S",
+				Decimals:   2,
+			},
+		},
+	}
+	txid := "0xda660592894dd357eedadbb69c82d7ff57859d6fb6269d2ea2eab0dce1dfd8e1"
+	scanTargetFunc := func(target openwallet.ScanTargetParam) openwallet.ScanTargetResult {
+		return addrs[target.ScanTarget]
+	}
+	result, contractResult, err := wm.GetBlockScanner().ExtractTransactionAndReceiptData(txid, scanTargetFunc)
+	if err != nil {
+		t.Errorf("ExtractTransactionAndReceiptData failed, err=%v", err)
+		return
+	}
+
+	for sourceKey, keyData := range result {
+		log.Notice("account:", sourceKey)
+		for _, data := range keyData {
+
+			for i, input := range data.TxInputs {
+				log.Std.Notice("data.TxInputs[%d]: %+v", i, input)
+			}
+
+			for i, output := range data.TxOutputs {
+				log.Std.Notice("data.TxOutputs[%d]: %+v", i, output)
+			}
+
+			log.Std.Notice("data.Transaction: %+v", data.Transaction)
+		}
+	}
+
+	for sourceKey, keyData := range contractResult {
+		log.Notice("contractID:", sourceKey)
+		log.Std.Notice("data.ContractTransaction: %+v", keyData)
+	}
 }
