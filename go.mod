@@ -8,7 +8,7 @@ require (
 	github.com/blocktree/go-owcdrivers v1.2.0
 	github.com/blocktree/go-owcrypt v1.1.2
 	github.com/blocktree/openwallet/v2 v2.0.4
-	github.com/blocktree/quorum-adapter v1.2.5
+	github.com/blocktree/quorum-adapter v1.2.6
 	github.com/ethereum/go-ethereum v1.9.9
 )
 
