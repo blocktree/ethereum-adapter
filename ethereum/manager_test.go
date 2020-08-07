@@ -83,9 +83,9 @@ func TestWalletManager_SetNetworkChainID(t *testing.T) {
 func TestWalletManager_GetTransactionFeeEstimated(t *testing.T) {
 	wm := testNewWalletManager()
 	txFee, err := wm.GetTransactionFeeEstimated(
-		"",
-		"",
-		big.NewInt(0),
+		"0xc883aaf61a15da53cb3071e52b1760eb1355ba78",
+		"0xf33c594038f41d5fa2e8b7d8b491aba2aca650b1",
+		big.NewInt(1000000),
 		nil)
 	if err != nil {
 		t.Errorf("GetTransactionFeeEstimated error: %v", err)
