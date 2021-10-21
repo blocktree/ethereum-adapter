@@ -16,10 +16,12 @@
 package ethereum
 
 import (
+	"encoding/hex"
 	"fmt"
 	"github.com/astaxie/beego/config"
 	"github.com/blocktree/openwallet/v2/common"
 	"github.com/blocktree/openwallet/v2/log"
+	"github.com/blocktree/quorum-adapter/quorum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/core/types"
 	"math/big"
@@ -61,7 +63,7 @@ func TestFixGasLimit(t *testing.T) {
 
 func TestWalletManager_GetAddrBalance(t *testing.T) {
 	wm := testNewWalletManager()
-	balance, err := wm.GetAddrBalance("", "pending")
+	balance, err := wm.GetAddrBalance("11", "pending")
 	if err != nil {
 		t.Errorf("GetAddrBalance2 error: %v", err)
 		return
@@ -82,11 +84,20 @@ func TestWalletManager_SetNetworkChainID(t *testing.T) {
 
 func TestWalletManager_GetTransactionFeeEstimated(t *testing.T) {
 	wm := testNewWalletManager()
+
+	data, createErr := wm.EncodeABIParam(quorum.ERC20_ABI, "transfer", "0x427003e98c9beecb415b94f583e3225d9fd14ba1", "720500721")
+	if createErr != nil {
+		t.Errorf("EncodeABIParam error: %v", createErr)
+		return
+	}
+
+	log.Infof("data: %s", hex.EncodeToString(data))
+
 	txFee, err := wm.GetTransactionFeeEstimated(
-		"0xc883aaf61a15da53cb3071e52b1760eb1355ba78",
-		"0xf33c594038f41d5fa2e8b7d8b491aba2aca650b1",
-		big.NewInt(1000000),
-		nil)
+		"0xc36eef576210a7850d73de2d7a1523123ba0cfdb",
+		"0xdac17f958d2ee523a2206206994597c13d831ec7",
+		nil,
+		data)
 	if err != nil {
 		t.Errorf("GetTransactionFeeEstimated error: %v", err)
 		return
@@ -106,7 +117,7 @@ func TestWalletManager_GetGasPrice(t *testing.T) {
 
 func TestWalletManager_GetTransactionCount(t *testing.T) {
 	wm := testNewWalletManager()
-	count, err := wm.GetTransactionCount("")
+	count, err := wm.GetTransactionCount("11")
 	if err != nil {
 		t.Errorf("GetTransactionCount error: %v", err)
 		return

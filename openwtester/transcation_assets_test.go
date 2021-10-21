@@ -178,20 +178,19 @@ func TestTransfer_ERC20(t *testing.T) {
 
 	addrs := []string{
 		"0x1d47898162fdb807c3143078658788bc468af394",
-		"0x6c3e80ec7fb07a79bf610311bd5a72f7955e41cd",
-		"0x80e7ed8adba18afb5d434961db5bbb9c6ca097f6",
-		"0x81f66231abe6047ba70f1c8efb001d6ae31b75eb",
-		"0x932eb86cad71e02af5df3873f5c6f4c57e9a6eeb",
-		"0x938db33857b30b0878d1593d51961468c1ac4d6f",
-		"0x9501d338e3aeda069ef1adb769d5f8eab4d19c28",
-		"0x982c2d7eb62e121f253437dd9eab4441f3498565",
-		"0xb99b2e29ad98f8547114abc09ff53f03cd939ad5",
-		"0xdbbaeb5d88edbdb20e6c95904fb5ffa731373c3c",
-		"0xf43d89450ae388169b8b29ce2991a07f6d747eb8",
-		"0xf650fed6738b573bccdd47360cb03621bba15684",
-		"0xf75f4e7fa0ac8e774276d52428c5892a531af62a",
+		//"0x6c3e80ec7fb07a79bf610311bd5a72f7955e41cd",
+		//"0x80e7ed8adba18afb5d434961db5bbb9c6ca097f6",
+		//"0x81f66231abe6047ba70f1c8efb001d6ae31b75eb",
+		//"0x932eb86cad71e02af5df3873f5c6f4c57e9a6eeb",
+		//"0x938db33857b30b0878d1593d51961468c1ac4d6f",
+		//"0x9501d338e3aeda069ef1adb769d5f8eab4d19c28",
+		//"0x982c2d7eb62e121f253437dd9eab4441f3498565",
+		//"0xb99b2e29ad98f8547114abc09ff53f03cd939ad5",
+		//"0xdbbaeb5d88edbdb20e6c95904fb5ffa731373c3c",
+		//"0xf43d89450ae388169b8b29ce2991a07f6d747eb8",
+		//"0xf650fed6738b573bccdd47360cb03621bba15684",
+		//"0xf75f4e7fa0ac8e774276d52428c5892a531af62a",
 
-		//"0xd35f9ea14d063af9b3567064fab567275b09f03d",
 	}
 
 	tm := testInitWalletManager()
@@ -237,14 +236,14 @@ func TestTransfer_ERC20(t *testing.T) {
 func TestSummary_ETH(t *testing.T) {
 	tm := testInitWalletManager()
 	walletID := "WBGYxZ6yEX582Mx8mGvygXevdLVc7NQnLM"
-	//accountID := "9EfTQiMEaKSMd1CjxMXRMMxukrwckxdBZpiEkS2B3avD"
-	accountID := "CxE3ds4JdTHXV1f2xSsE6qahgfReKR9iPmFPcBmTfaKP"
+	accountID := "9EfTQiMEaKSMd1CjxMXRMMxukrwckxdBZpiEkS2B3avD"
+	//accountID := "CxE3ds4JdTHXV1f2xSsE6qahgfReKR9iPmFPcBmTfaKP"
 	summaryAddress := "0xbb0d592280f170069821bcae6c861a5686b77c43"
 
 	testGetAssetsAccountBalance(tm, walletID, accountID)
 
 	rawTxArray, err := testCreateSummaryTransactionStep(tm, walletID, accountID,
-		summaryAddress, "", "", "",
+		summaryAddress, "", "", "0.000000002",
 		0, 100, nil, nil)
 	if err != nil {
 		log.Errorf("CreateSummaryTransaction failed, unexpected error: %v", err)
@@ -269,10 +268,10 @@ func TestSummary_ETH(t *testing.T) {
 			return
 		}
 
-		_, err = testSubmitTransactionStep(tm, rawTxWithErr.RawTx)
-		if err != nil {
-			return
-		}
+		//_, err = testSubmitTransactionStep(tm, rawTxWithErr.RawTx)
+		//if err != nil {
+		//	return
+		//}
 	}
 
 }
@@ -286,7 +285,7 @@ func TestSummary_ERC20(t *testing.T) {
 	feesSupport := openwallet.FeesSupportAccount{
 		AccountID: "9EfTQiMEaKSMd1CjxMXRMMxukrwckxdBZpiEkS2B3avD",
 		//FixSupportAmount: "0.01",
-		FeesSupportScale: "2",
+		FeesSupportScale: "1.2",
 	}
 
 	contract := openwallet.SmartContract{
@@ -307,7 +306,7 @@ func TestSummary_ERC20(t *testing.T) {
 		return
 	}
 
-	addressLimit := 3
+	addressLimit := 50
 
 	//分页汇总交易
 	for i := 0; i < len(list); i = i + addressLimit {

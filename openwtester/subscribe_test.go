@@ -80,7 +80,7 @@ func TestSubscribeAddress_ETH(t *testing.T) {
 		return
 	}
 	scanner.SetBlockScanTargetFuncV2(testScanTargetFunc(symbol))
-	scanner.SetRescanBlockHeight(10280596)
+	scanner.SetRescanBlockHeight(10280629)
 	scanner.Run()
 
 	<-endRunning
@@ -90,7 +90,7 @@ func TestBlockScanner_ExtractTransactionAndReceiptData(t *testing.T) {
 
 	var (
 		symbol = "ETH"
-		txid   = "0xc9306dab17cdcf35cc61a702ae392595bfd74726206e9d5bff91ba5ee0af0963"
+		txid   = "0x0462f8db1152c6f1d184fb7947e021a10bb1265758ac24d59a7bcb237bee08e6"
 	)
 
 	scanner := testBlockScanner(symbol)
@@ -151,7 +151,7 @@ func testScanTargetFunc(symbol string) openwallet.BlockScanTargetFuncV2 {
 
 	//添加监听的外部地址
 	addrs["0x0ff8d979e33412a2904a66226ff6a336d7c873db"] = openwallet.ScanTargetResult{SourceKey: "sender", Exist: true}
-	addrs["0x4492da4ea423b61ad426bd4ce159a8dfbcfcabdd"] = openwallet.ScanTargetResult{SourceKey: "receiver", Exist: true}
+	addrs["0xc97a4ed29f03fd549c4ae79086673523122d2bc5"] = openwallet.ScanTargetResult{SourceKey: "receiver", Exist: true}
 
 	scanTargetFunc := func(target openwallet.ScanTargetParam) openwallet.ScanTargetResult {
 		if target.ScanTargetType == openwallet.ScanTargetTypeContractAddress {
