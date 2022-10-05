@@ -80,7 +80,7 @@ func TestSubscribeAddress_ETH(t *testing.T) {
 		return
 	}
 	scanner.SetBlockScanTargetFuncV2(testScanTargetFunc(symbol))
-	scanner.SetRescanBlockHeight(10280629)
+	//scanner.SetRescanBlockHeight(10280629)
 	scanner.Run()
 
 	<-endRunning
@@ -135,8 +135,8 @@ func TestBlockScanner_ExtractTransactionAndReceiptData(t *testing.T) {
 
 func testScanTargetFunc(symbol string) openwallet.BlockScanTargetFuncV2 {
 	var (
-		addrs  = make(map[string]openwallet.ScanTargetResult)
-		contracts   = make(map[string]openwallet.ScanTargetResult)
+		addrs     = make(map[string]openwallet.ScanTargetResult)
+		contracts = make(map[string]openwallet.ScanTargetResult)
 	)
 
 	//添加监听的合约地址
@@ -159,7 +159,7 @@ func testScanTargetFunc(symbol string) openwallet.BlockScanTargetFuncV2 {
 		} else if target.ScanTargetType == openwallet.ScanTargetTypeAccountAddress {
 			return addrs[target.ScanTarget]
 		}
-		return openwallet.ScanTargetResult{SourceKey: "", Exist: false, TargetInfo: nil,}
+		return openwallet.ScanTargetResult{SourceKey: "", Exist: false, TargetInfo: nil}
 	}
 
 	return scanTargetFunc
